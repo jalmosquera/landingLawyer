@@ -24,6 +24,7 @@ urlpatterns = [
     # API Endpoints
     path('api/auth/', include('apps.users.api.router')),
     path('api/', include('apps.clients.api.router')),
+    path('api/', include('apps.cases.api.router')),
     # Temporarily commented - will implement step by step
     # path('api/reports/', include('apps.reports.api.router')),
     # path('api/tokens/', include('apps.tokens.api.router')),
