@@ -1,43 +1,70 @@
+"""
+Admin configuration for Appointments app.
+"""
+
 from django.contrib import admin
-from .models import Appointment, AppointmentNotification
-
-
-class AppointmentNotificationInline(admin.TabularInline):
-    model = AppointmentNotification
-    extra = 0
-    readonly_fields = ('sent_at', 'created_at')
+from .models import Appointment
 
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('title', 'client', 'lawyer', 'start_time', 'end_time', 'status', 'google_event_id')
-    list_filter = ('status', 'start_time', 'lawyer')
-    search_fields = ('title', 'client__full_name', 'description')
-    readonly_fields = ('google_event_id', 'meet_link', 'created_at', 'updated_at')
-    inlines = [AppointmentNotificationInline]
+    """Admin interface for Appointment model."""
+
+    list_display = [
+        'title',
+        'display_name',
+        'starts_at',
+        'duration_minutes',
+        'appointment_type',
+        'status',
+        'is_public_request',
+        'is_synced_with_google'
+    ]
+    list_filter = ['status', 'appointment_type', 'starts_at', 'created_at']
+    search_fields = [
+        'title',
+        'description',
+        'client__full_name',
+        'requested_by_name',
+        'requested_by_email',
+        'case__case_number'
+    ]
+    readonly_fields = ['created_at', 'updated_at', 'last_sync_at', 'duration_minutes']
 
     fieldsets = (
-        ('Appointment Details', {
-            'fields': ('title', 'description', 'client', 'lawyer')
+        ('Información de la Cita', {
+            'fields': ('title', 'description', 'appointment_type', 'status')
         }),
-        ('Schedule', {
-            'fields': ('start_time', 'end_time', 'status')
+        ('Cliente/Solicitante', {
+            'fields': ('client', 'case', 'requested_by_name', 'requested_by_email', 'requested_by_phone')
+        }),
+        ('Fecha y Hora', {
+            'fields': ('starts_at', 'ends_at', 'duration_minutes')
+        }),
+        ('Ubicación', {
+            'fields': ('location',)
         }),
         ('Google Calendar', {
-            'fields': ('google_event_id', 'meet_link')
+            'fields': ('google_calendar_id', 'google_meet_link', 'last_sync_at'),
+            'classes': ('collapse',)
         }),
-        ('Cancellation', {
-            'fields': ('cancelled_at', 'cancellation_reason')
+        ('Notas Internas', {
+            'fields': ('internal_notes',)
         }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at')
+        ('Información de Auditoría', {
+            'fields': ('created_by', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
         }),
     )
 
+    def is_public_request(self, obj):
+        """Display if it's a public request."""
+        return obj.is_public_request
+    is_public_request.boolean = True
+    is_public_request.short_description = 'Pública'
 
-@admin.register(AppointmentNotification)
-class AppointmentNotificationAdmin(admin.ModelAdmin):
-    list_display = ('appointment', 'type', 'channel', 'status', 'sent_at')
-    list_filter = ('type', 'channel', 'status', 'sent_at')
-    search_fields = ('appointment__title',)
-    readonly_fields = ('sent_at', 'created_at')
+    def is_synced_with_google(self, obj):
+        """Display if synced with Google Calendar."""
+        return obj.is_synced_with_google
+    is_synced_with_google.boolean = True
+    is_synced_with_google.short_description = 'Sync Google'

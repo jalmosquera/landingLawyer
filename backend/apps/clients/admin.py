@@ -1,45 +1,56 @@
+"""
+Admin configuration for Clients app.
+"""
+
 from django.contrib import admin
-from .models import Client, ClientNote, CommunicationLog
-
-
-class ClientNoteInline(admin.TabularInline):
-    model = ClientNote
-    extra = 0
-    readonly_fields = ('created_at', 'created_by')
+from .models import Client
 
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'email', 'phone', 'lawyer', 'is_active', 'created_at')
-    list_filter = ('is_active', 'lawyer', 'created_at')
-    search_fields = ('full_name', 'email', 'phone', 'dni_curp')
-    readonly_fields = ('created_at', 'updated_at')
-    inlines = [ClientNoteInline]
+    """Admin interface for Client model."""
+
+    list_display = [
+        'full_name',
+        'email',
+        'phone',
+        'has_portal_access',
+        'active_cases_count',
+        'created_at'
+    ]
+    list_filter = ['identification_type', 'created_at']
+    search_fields = ['full_name', 'email', 'phone', 'identification_number']
+    readonly_fields = ['created_at', 'updated_at', 'created_by']
 
     fieldsets = (
-        ('Basic Information', {
-            'fields': ('full_name', 'email', 'phone', 'lawyer')
+        ('Información Personal', {
+            'fields': ('full_name', 'email', 'phone')
         }),
-        ('Legal Documents', {
-            'fields': ('dni_curp', 'address', 'city', 'state', 'postal_code')
+        ('Identificación', {
+            'fields': ('identification_type', 'identification_number')
         }),
-        ('Status', {
-            'fields': ('is_active', 'created_at', 'updated_at')
+        ('Dirección', {
+            'fields': ('address', 'city', 'state', 'postal_code')
+        }),
+        ('Portal de Cliente', {
+            'fields': ('user',)
+        }),
+        ('Notas Internas', {
+            'fields': ('notes',)
+        }),
+        ('Información de Auditoría', {
+            'fields': ('created_by', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
         }),
     )
 
+    def has_portal_access(self, obj):
+        """Display if client has portal access."""
+        return obj.has_portal_access
+    has_portal_access.boolean = True
+    has_portal_access.short_description = 'Portal'
 
-@admin.register(ClientNote)
-class ClientNoteAdmin(admin.ModelAdmin):
-    list_display = ('client', 'created_by', 'created_at')
-    list_filter = ('created_at', 'created_by')
-    search_fields = ('client__full_name', 'content')
-    readonly_fields = ('created_at',)
-
-
-@admin.register(CommunicationLog)
-class CommunicationLogAdmin(admin.ModelAdmin):
-    list_display = ('client', 'type', 'subject', 'status', 'sent_at')
-    list_filter = ('type', 'status', 'sent_at')
-    search_fields = ('client__full_name', 'subject', 'body')
-    readonly_fields = ('created_at', 'sent_at', 'delivered_at', 'opened_at')
+    def active_cases_count(self, obj):
+        """Display count of active cases."""
+        return obj.active_cases_count
+    active_cases_count.short_description = 'Casos Activos'
