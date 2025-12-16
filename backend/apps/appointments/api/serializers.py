@@ -1,73 +1,300 @@
+"""
+Appointment API serializers.
+"""
+
 from rest_framework import serializers
-from apps.appointments.models import Appointment, AppointmentNotification
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from apps.appointments.models import Appointment
+from apps.clients.api.serializers import ClientMinimalSerializer
+from apps.cases.api.serializers import CaseMinimalSerializer
+
+User = get_user_model()
 
 
-class AppointmentNotificationSerializer(serializers.ModelSerializer):
+class AppointmentSerializer(serializers.ModelSerializer):
     """
-    Serializer for appointment notifications.
+    Serializer for Appointment model with full details.
+
+    Used for listing and retrieving appointment information.
     """
 
-    class Meta:
-        model = AppointmentNotification
-        fields = ['id', 'type', 'channel', 'status', 'sent_at', 'error_message', 'created_at']
-        read_only_fields = ['id', 'sent_at', 'created_at']
-
-
-class AppointmentListSerializer(serializers.ModelSerializer):
-    """
-    Serializer for appointment list (minimal fields).
-    """
-    client_name = serializers.CharField(source='client.full_name', read_only=True)
-    lawyer_name = serializers.CharField(source='lawyer.get_full_name', read_only=True)
-
-    class Meta:
-        model = Appointment
-        fields = ['id', 'title', 'client_name', 'lawyer_name', 'start_time', 'end_time', 'status', 'meet_link']
-        read_only_fields = ['id']
-
-
-class AppointmentDetailSerializer(serializers.ModelSerializer):
-    """
-    Serializer for appointment details.
-    """
-    client_name = serializers.CharField(source='client.full_name', read_only=True)
-    lawyer_name = serializers.CharField(source='lawyer.get_full_name', read_only=True)
-    notifications = AppointmentNotificationSerializer(many=True, read_only=True)
+    client_data = ClientMinimalSerializer(source='client', read_only=True, allow_null=True)
+    case_data = CaseMinimalSerializer(source='case', read_only=True, allow_null=True)
+    created_by_name = serializers.CharField(source='created_by.name', read_only=True, allow_null=True)
+    appointment_type_display = serializers.CharField(source='get_appointment_type_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    is_public_request = serializers.BooleanField(read_only=True)
+    duration_minutes = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
         fields = [
-            'id', 'title', 'description', 'client', 'client_name',
-            'lawyer', 'lawyer_name', 'start_time', 'end_time',
-            'google_event_id', 'meet_link', 'status',
-            'cancelled_at', 'cancellation_reason', 'notifications',
-            'created_at', 'updated_at'
+            'id',
+            'client',
+            'client_data',
+            'case',
+            'case_data',
+            'requested_by_email',
+            'requested_by_name',
+            'requested_by_phone',
+            'starts_at',
+            'ends_at',
+            'duration_minutes',
+            'title',
+            'description',
+            'appointment_type',
+            'appointment_type_display',
+            'status',
+            'status_display',
+            'location',
+            'google_calendar_id',
+            'google_meet_link',
+            'last_sync_at',
+            'internal_notes',
+            'is_public_request',
+            'created_at',
+            'updated_at',
+            'created_by',
+            'created_by_name',
         ]
-        read_only_fields = ['id', 'google_event_id', 'meet_link', 'created_at', 'updated_at']
+        read_only_fields = [
+            'id',
+            'google_calendar_id',
+            'google_meet_link',
+            'last_sync_at',
+            'created_at',
+            'updated_at',
+            'created_by'
+        ]
+
+    def get_duration_minutes(self, obj):
+        """Calculate duration in minutes."""
+        if obj.starts_at and obj.ends_at:
+            delta = obj.ends_at - obj.starts_at
+            return int(delta.total_seconds() / 60)
+        return None
 
 
 class AppointmentCreateSerializer(serializers.ModelSerializer):
     """
-    Serializer for creating appointments.
+    Serializer for creating new appointments (staff only).
+
+    Validates time ranges and checks for conflicts.
     """
 
     class Meta:
         model = Appointment
-        fields = ['title', 'description', 'client', 'start_time', 'end_time']
+        fields = [
+            'client',
+            'case',
+            'starts_at',
+            'ends_at',
+            'title',
+            'description',
+            'appointment_type',
+            'status',
+            'location',
+            'internal_notes',
+        ]
 
-    def validate(self, attrs):
-        if attrs['end_time'] <= attrs['start_time']:
-            raise serializers.ValidationError("End time must be after start time.")
-        return attrs
+    def validate(self, data):
+        """Validate appointment data."""
+        starts_at = data.get('starts_at')
+        ends_at = data.get('ends_at')
+
+        # Validate time range
+        if starts_at and ends_at:
+            if ends_at <= starts_at:
+                raise serializers.ValidationError(
+                    "La hora de fin debe ser posterior a la hora de inicio."
+                )
+
+            # Check minimum duration (15 minutes)
+            duration = (ends_at - starts_at).total_seconds() / 60
+            if duration < 15:
+                raise serializers.ValidationError(
+                    "La duración mínima de una cita es 15 minutos."
+                )
+
+            # Check if start time is in the past
+            if starts_at < timezone.now():
+                raise serializers.ValidationError(
+                    "No se pueden crear citas en el pasado."
+                )
+
+            # Check for conflicts (optional - can be disabled if overbooking is allowed)
+            conflicts = Appointment.objects.filter(
+                starts_at__lt=ends_at,
+                ends_at__gt=starts_at,
+                status__in=['pending', 'confirmed']
+            )
+
+            # Exclude current instance if updating
+            if self.instance:
+                conflicts = conflicts.exclude(pk=self.instance.pk)
+
+            if conflicts.exists():
+                raise serializers.ValidationError(
+                    f"Conflicto de horario. Ya existe una cita en este horario: {conflicts.first().title}"
+                )
+
+        return data
 
     def create(self, validated_data):
-        # Set the lawyer from the request context
-        validated_data['lawyer'] = self.context['request'].user
-
-        # TODO: Integrate with Google Calendar service
-        # google_service = GoogleCalendarService(credentials=...)
-        # result = google_service.create_event(...)
-        # validated_data['google_event_id'] = result['event_id']
-        # validated_data['meet_link'] = result['meet_link']
-
+        """Create appointment and set created_by."""
+        validated_data['created_by'] = self.context['request'].user
         return super().create(validated_data)
+
+
+class AppointmentUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for updating existing appointments.
+    """
+
+    class Meta:
+        model = Appointment
+        fields = [
+            'client',
+            'case',
+            'starts_at',
+            'ends_at',
+            'title',
+            'description',
+            'appointment_type',
+            'status',
+            'location',
+            'internal_notes',
+        ]
+
+    def validate(self, data):
+        """Validate appointment data."""
+        starts_at = data.get('starts_at', self.instance.starts_at if self.instance else None)
+        ends_at = data.get('ends_at', self.instance.ends_at if self.instance else None)
+
+        if starts_at and ends_at:
+            if ends_at <= starts_at:
+                raise serializers.ValidationError(
+                    "La hora de fin debe ser posterior a la hora de inicio."
+                )
+
+            # Check for conflicts
+            conflicts = Appointment.objects.filter(
+                starts_at__lt=ends_at,
+                ends_at__gt=starts_at,
+                status__in=['pending', 'confirmed']
+            )
+
+            if self.instance:
+                conflicts = conflicts.exclude(pk=self.instance.pk)
+
+            if conflicts.exists():
+                raise serializers.ValidationError(
+                    f"Conflicto de horario con: {conflicts.first().title}"
+                )
+
+        return data
+
+
+class AppointmentMinimalSerializer(serializers.ModelSerializer):
+    """
+    Minimal appointment serializer for nested representations.
+    """
+
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    appointment_type_display = serializers.CharField(source='get_appointment_type_display', read_only=True)
+
+    class Meta:
+        model = Appointment
+        fields = [
+            'id',
+            'title',
+            'starts_at',
+            'ends_at',
+            'appointment_type',
+            'appointment_type_display',
+            'status',
+            'status_display',
+            'location',
+        ]
+        read_only_fields = fields
+
+
+class PublicAppointmentRequestSerializer(serializers.Serializer):
+    """
+    Serializer for public appointment requests (no authentication required).
+
+    Used when clients request appointments through the public calendar.
+    """
+
+    requested_by_name = serializers.CharField(
+        max_length=200,
+        required=True,
+        help_text='Nombre completo'
+    )
+    requested_by_email = serializers.EmailField(
+        required=True,
+        help_text='Correo electrónico'
+    )
+    requested_by_phone = serializers.CharField(
+        max_length=20,
+        required=True,
+        help_text='Teléfono de contacto'
+    )
+    starts_at = serializers.DateTimeField(
+        required=True,
+        help_text='Fecha y hora de inicio'
+    )
+    ends_at = serializers.DateTimeField(
+        required=True,
+        help_text='Fecha y hora de fin'
+    )
+    appointment_type = serializers.ChoiceField(
+        choices=Appointment._meta.get_field('appointment_type').choices,
+        default='in_person',
+        help_text='Tipo de cita'
+    )
+    message = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text='Mensaje adicional (opcional)'
+    )
+
+    def validate(self, data):
+        """Validate public appointment request."""
+        starts_at = data['starts_at']
+        ends_at = data['ends_at']
+
+        if ends_at <= starts_at:
+            raise serializers.ValidationError(
+                "La hora de fin debe ser posterior a la hora de inicio."
+            )
+
+        if starts_at < timezone.now():
+            raise serializers.ValidationError(
+                "No se pueden solicitar citas en el pasado."
+            )
+
+        # Check if slot is available
+        from apps.appointments.services.availability import AvailabilityService
+        availability_service = AvailabilityService()
+
+        if not availability_service.is_time_available(starts_at, ends_at):
+            raise serializers.ValidationError(
+                "El horario seleccionado no está disponible. Por favor selecciona otro."
+            )
+
+        return data
+
+
+class AvailableSlotSerializer(serializers.Serializer):
+    """
+    Serializer for available time slots.
+
+    Used in public calendar to show available appointment times.
+    """
+
+    start_time = serializers.DateTimeField()
+    end_time = serializers.DateTimeField()
+    available = serializers.BooleanField()
+    duration_minutes = serializers.IntegerField(read_only=True)

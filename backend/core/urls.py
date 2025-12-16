@@ -26,9 +26,9 @@ urlpatterns = [
     path('api/', include('apps.clients.api.router')),
     path('api/', include('apps.cases.api.router')),
     path('api/', include('apps.documents.api.router')),
+    path('api/', include('apps.appointments.api.router')),
     # Temporarily commented - will implement step by step
-    # path('api/appointments/', include('apps.appointments.api.router')),
-    # path('api/landing/', include('apps.landing.api.router')),
+    # path('api/', include('apps.landing.api.router')),
 ]
 
 # Serve media files in development
