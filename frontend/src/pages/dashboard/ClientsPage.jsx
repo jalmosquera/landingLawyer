@@ -23,6 +23,18 @@ import {
 } from '../../components/ui'
 import { clientsAPI } from '../../services/api'
 
+// Helper function to get identification type label
+const getIdentificationTypeLabel = (type) => {
+  const labels = {
+    ine: 'INE/IFE',
+    passport: 'Pasaporte',
+    rfc: 'RFC',
+    curp: 'CURP',
+    other: 'Otro',
+  }
+  return labels[type] || type
+}
+
 function ClientsPage() {
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
@@ -37,7 +49,7 @@ function ClientsPage() {
     full_name: '',
     email: '',
     phone: '',
-    identification_type: 'DNI',
+    identification_type: 'ine',
     identification_number: '',
     address: '',
     city: '',
@@ -73,7 +85,7 @@ function ClientsPage() {
         full_name: client.full_name || '',
         email: client.email || '',
         phone: client.phone || '',
-        identification_type: client.identification_type || 'DNI',
+        identification_type: client.identification_type || 'ine',
         identification_number: client.identification_number || '',
         address: client.address || '',
         city: client.city || '',
@@ -87,7 +99,7 @@ function ClientsPage() {
         full_name: '',
         email: '',
         phone: '',
-        identification_type: 'DNI',
+        identification_type: 'ine',
         identification_number: '',
         address: '',
         city: '',
@@ -283,7 +295,7 @@ function ClientsPage() {
                   <Table.Cell>{client.phone}</Table.Cell>
                   <Table.Cell>
                     <Badge variant="default" size="sm">
-                      {client.identification_type} {client.identification_number}
+                      {getIdentificationTypeLabel(client.identification_type)} {client.identification_number}
                     </Badge>
                   </Table.Cell>
                   <Table.Cell>{client.city || '-'}</Table.Cell>
@@ -402,10 +414,11 @@ function ClientsPage() {
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
                 >
-                  <option value="DNI">DNI</option>
-                  <option value="NIE">NIE</option>
-                  <option value="Pasaporte">Pasaporte</option>
-                  <option value="CIF">CIF</option>
+                  <option value="ine">INE/IFE</option>
+                  <option value="passport">Pasaporte</option>
+                  <option value="rfc">RFC</option>
+                  <option value="curp">CURP</option>
+                  <option value="other">Otro</option>
                 </select>
               </div>
 
