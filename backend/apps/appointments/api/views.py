@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from apps.appointments.models import Appointment
 from apps.appointments.services.google_calendar import GoogleCalendarService
 from apps.appointments.services.availability import AvailabilityService
+from apps.appointments.services.notification import AppointmentNotificationService
 from core.permissions import IsStaff, IsClient
 from .serializers import (
     AppointmentSerializer,
@@ -256,6 +257,120 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             'upcoming_appointments': AppointmentMinimalSerializer(upcoming, many=True).data
         })
 
+    @action(detail=True, methods=['post'])
+    def confirm(self, request, pk=None):
+        """
+        Confirm a pending appointment and notify client.
+
+        POST /api/appointments/{id}/confirm/
+
+        Changes status to 'confirmed' and sends confirmation email to client.
+        """
+        appointment = self.get_object()
+
+        if appointment.status == 'confirmed':
+            return Response(
+                {'detail': 'La cita ya está confirmada.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Update status
+        old_status = appointment.status
+        appointment.status = 'confirmed'
+        appointment.save(update_fields=['status'])
+
+        # Send confirmation email to client
+        email_sent = AppointmentNotificationService.send_confirmation_to_client(appointment)
+
+        # Generate WhatsApp link
+        whatsapp_link = AppointmentNotificationService.generate_whatsapp_link(appointment, confirmed=True)
+
+        # Try to sync with Google Calendar if not already synced
+        if not appointment.google_calendar_id:
+            google_service = GoogleCalendarService()
+            result = google_service.create_event(appointment)
+
+            if result['success']:
+                appointment.google_calendar_id = result.get('event_id')
+                appointment.google_meet_link = result.get('google_meet_link')
+                appointment.last_sync_at = timezone.now()
+                appointment.save(update_fields=['google_calendar_id', 'google_meet_link', 'last_sync_at'])
+
+        return Response({
+            'success': True,
+            'message': 'Cita confirmada exitosamente.',
+            'appointment': AppointmentSerializer(appointment).data,
+            'email_sent': email_sent,
+            'whatsapp_link': whatsapp_link
+        })
+
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """
+        Cancel an appointment.
+
+        POST /api/appointments/{id}/cancel/
+        """
+        appointment = self.get_object()
+
+        if appointment.status == 'cancelled':
+            return Response(
+                {'detail': 'La cita ya está cancelada.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Update status
+        appointment.status = 'cancelled'
+        appointment.save(update_fields=['status'])
+
+        # Remove from Google Calendar if exists
+        if appointment.google_calendar_id:
+            google_service = GoogleCalendarService()
+            google_service.delete_event(appointment.google_calendar_id)
+
+        # TODO: Send cancellation notification to client
+        # AppointmentNotificationService.notify_cancellation(appointment)
+
+        return Response({
+            'success': True,
+            'message': 'Cita cancelada exitosamente.',
+            'appointment': AppointmentSerializer(appointment).data
+        })
+
+    @action(detail=True, methods=['get'])
+    def whatsapp_link(self, request, pk=None):
+        """
+        Get WhatsApp link for appointment notification.
+
+        GET /api/appointments/{id}/whatsapp_link/
+
+        Returns a wa.me link with pre-filled message.
+        """
+        appointment = self.get_object()
+
+        # Check if appointment has phone number
+        if not appointment.requested_by_phone and (not appointment.client or not appointment.client.phone):
+            return Response(
+                {'detail': 'No hay número de teléfono disponible para esta cita.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Generate WhatsApp link
+        confirmed = appointment.status == 'confirmed'
+        whatsapp_link = AppointmentNotificationService.generate_whatsapp_link(appointment, confirmed)
+
+        if not whatsapp_link:
+            return Response(
+                {'detail': 'No se pudo generar el enlace de WhatsApp.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response({
+            'success': True,
+            'whatsapp_link': whatsapp_link,
+            'message': AppointmentNotificationService.generate_whatsapp_message(appointment, confirmed)
+        })
+
 
 class PublicAvailabilityView(views.APIView):
     """
@@ -344,6 +459,9 @@ class PublicAppointmentRequestView(views.APIView):
             description=serializer.validated_data.get('message', ''),
             status='pending'
         )
+
+        # Send notification to staff about new appointment request
+        staff_notified = AppointmentNotificationService.notify_staff_new_request(appointment)
 
         return Response({
             'success': True,

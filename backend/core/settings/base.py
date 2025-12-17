@@ -31,8 +31,8 @@ INSTALLED_APPS = [
     # Local apps
     'apps.users',
     'apps.clients',
-    'apps.reports',
-    'apps.tokens',
+    'apps.cases',
+    'apps.documents',
     'apps.appointments',
     'apps.landing',
 ]
@@ -104,7 +104,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom User Model
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'users.User'
 
 # REST Framework Configuration
 REST_FRAMEWORK = {
@@ -165,7 +165,16 @@ GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
 GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
 GOOGLE_REDIRECT_URI = config('GOOGLE_REDIRECT_URI', default='')
 
-# Brevo Email Configuration
+# Email Configuration
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@eduardobernal.com')
+
+# Brevo Email Configuration (optional alternative)
 BREVO_API_KEY = config('BREVO_API_KEY', default='')
 BREVO_SENDER_EMAIL = config('BREVO_SENDER_EMAIL', default='noreply@landinglawyer.com')
 BREVO_SENDER_NAME = config('BREVO_SENDER_NAME', default='landingLawyer')
@@ -185,7 +194,27 @@ TOKEN_MAX_USES = config('TOKEN_MAX_USES', default=1, cast=int)
 # File Upload Configuration
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
 ALLOWED_REPORT_EXTENSIONS = ['.pdf']
+MAX_DOCUMENT_SIZE = 20 * 1024 * 1024  # 20MB for documents
 
 # Rate Limiting (for public endpoints)
 RATE_LIMIT_CONTACT_FORM = '5/hour'  # 5 messages per hour per IP
 RATE_LIMIT_TOKEN_VALIDATION = '10/minute'  # 10 token validations per minute per IP
+
+# Frontend URL Configuration
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+
+# Firm Information
+FIRM_NAME = config('FIRM_NAME', default='Bufete Legal')
+
+# Document Token Configuration
+DOCUMENT_TOKEN_EXPIRY_HOURS = config('DOCUMENT_TOKEN_EXPIRY_HOURS', default=1, cast=int)  # Download token expiry
+DOCUMENT_ACCESS_CODE_EXPIRY_HOURS = config('DOCUMENT_ACCESS_CODE_EXPIRY_HOURS', default=24, cast=int)  # Access code expiry
+
+# Appointment Configuration
+BUSINESS_HOURS_START = config('BUSINESS_HOURS_START', default='09:00')  # Format: HH:MM
+BUSINESS_HOURS_END = config('BUSINESS_HOURS_END', default='18:00')  # Format: HH:MM
+DEFAULT_APPOINTMENT_DURATION = config('DEFAULT_APPOINTMENT_DURATION', default=60, cast=int)  # Minutes
+WORKING_DAYS = [0, 1, 2, 3, 4]  # Monday to Friday (0=Monday, 6=Sunday)
+
+# WhatsApp Configuration
+WHATSAPP_DEFAULT_NUMBER = config('WHATSAPP_DEFAULT_NUMBER', default='+521234567890')

@@ -18,9 +18,23 @@ class AvailabilityService:
 
     def __init__(self):
         """Initialize availability service with business hours."""
-        # Default business hours: 9 AM - 6 PM
-        self.business_start = getattr(settings, 'BUSINESS_HOURS_START', time(9, 0))
-        self.business_end = getattr(settings, 'BUSINESS_HOURS_END', time(18, 0))
+        # Parse business hours from settings (can be time object or string)
+        business_start = getattr(settings, 'BUSINESS_HOURS_START', time(9, 0))
+        business_end = getattr(settings, 'BUSINESS_HOURS_END', time(18, 0))
+
+        # Convert string to time object if needed
+        if isinstance(business_start, str):
+            hour, minute = map(int, business_start.split(':'))
+            self.business_start = time(hour, minute)
+        else:
+            self.business_start = business_start
+
+        if isinstance(business_end, str):
+            hour, minute = map(int, business_end.split(':'))
+            self.business_end = time(hour, minute)
+        else:
+            self.business_end = business_end
+
         # Default slot duration: 60 minutes
         self.default_duration = getattr(settings, 'DEFAULT_APPOINTMENT_DURATION', 60)
         # Days of week (0 = Monday, 6 = Sunday)
