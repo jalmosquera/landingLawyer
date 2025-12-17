@@ -15,6 +15,7 @@ import RoleProtectedRoute from './components/RoleProtectedRoute';
 
 // Layouts
 import DashboardLayout from './layouts/DashboardLayout';
+import PortalLayout from './layouts/PortalLayout';
 
 // Public pages
 import Landing from './pages/Landing';
@@ -30,6 +31,10 @@ import LandingAdminPage from './pages/dashboard/LandingAdminPage';
 
 // Portal pages (client)
 import PortalDashboard from './pages/portal/PortalDashboard';
+import PortalCasesPage from './pages/portal/PortalCasesPage';
+import PortalDocumentsPage from './pages/portal/PortalDocumentsPage';
+import DocumentVerifyPage from './pages/portal/DocumentVerifyPage';
+import PortalAppointmentsPage from './pages/portal/PortalAppointmentsPage';
 
 function App() {
   const { loadUser } = useAuthStore();
@@ -74,10 +79,16 @@ function App() {
           element={
             <ProtectedRoute>
               <RoleProtectedRoute allowedRoles={['client']}>
-                <Routes>
-                  <Route index element={<Navigate to="/portal/dashboard" replace />} />
-                  <Route path="dashboard" element={<PortalDashboard />} />
-                </Routes>
+                <PortalLayout>
+                  <Routes>
+                    <Route index element={<Navigate to="/portal/dashboard" replace />} />
+                    <Route path="dashboard" element={<PortalDashboard />} />
+                    <Route path="cases" element={<PortalCasesPage />} />
+                    <Route path="documents" element={<PortalDocumentsPage />} />
+                    <Route path="documents/verify" element={<DocumentVerifyPage />} />
+                    <Route path="appointments" element={<PortalAppointmentsPage />} />
+                  </Routes>
+                </PortalLayout>
               </RoleProtectedRoute>
             </ProtectedRoute>
           }
