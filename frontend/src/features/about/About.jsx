@@ -33,31 +33,38 @@ function About() {
         <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-8 mb-16">
           <div className="flex flex-col md:flex-row gap-8 items-center">
             <div className="w-full md:w-1/3">
-              <div className="aspect-square bg-gradient-to-br from-primary to-primary-light rounded-lg flex items-center justify-center">
-                <span className="text-white text-4xl font-bold">
-                  [FOTO DEL ABOGADO]
-                </span>
+              <div className="aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-primary to-primary-light">
+                <img
+                  src="/Consejero.jpg"
+                  alt="Consejero"
+                  className="w-full h-full object-cover block"
+                />
               </div>
             </div>
+
             <div className="w-full md:w-2/3">
               <h3 className="text-3xl font-bold text-primary mb-4">
                 Eduardo Bernal Fernández
               </h3>
+
               <p className="text-sm text-gray-600 mb-4">
                 Colegiado Nº 4941 - Ilustre Colegio de Abogados de Málaga (ICAMA)
               </p>
+
               <p className="text-gray-700 mb-4">
                 Abogado en ejercicio con más de 25 años de experiencia exclusiva en el sector privado,
                 habiendo representado tanto a clientes institucionales como entidades públicas. Desarrolla
                 su labor profesional en la faceta judicial, compareciendo en representación y defensa de
                 los intereses de sus clientes ante los Tribunales Penales, Civiles y Contencioso-Administrativos.
               </p>
+
               <p className="text-gray-700 mb-4">
                 Distinguido por el Ilustre Colegio de Abogados de Málaga el 21 de octubre de 2025 por
                 sus 25 años de ejercicio profesional. Acreedor de una mención por su participación
                 como concejal del Ayuntamiento de Ardales en defensa de los intereses democráticos
                 imperantes en nuestro sistema político, social y judicial.
               </p>
+
               <p className="text-gray-700">
                 Cuenta con numerosos cursos de especialización en diferentes materias propias de su
                 profesión, incluyendo Derecho Notarial y Oratoria.

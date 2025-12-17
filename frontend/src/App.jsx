@@ -13,6 +13,9 @@ import useAuthStore from './stores/authStore';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
 
+// Layouts
+import DashboardLayout from './layouts/DashboardLayout';
+
 // Public pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -44,10 +47,12 @@ function App() {
           element={
             <ProtectedRoute>
               <RoleProtectedRoute allowedRoles={['boss', 'employe']}>
-                <Routes>
-                  <Route index element={<Navigate to="/dashboard/home" replace />} />
-                  <Route path="home" element={<DashboardHome />} />
-                </Routes>
+                <DashboardLayout>
+                  <Routes>
+                    <Route index element={<Navigate to="/dashboard/home" replace />} />
+                    <Route path="home" element={<DashboardHome />} />
+                  </Routes>
+                </DashboardLayout>
               </RoleProtectedRoute>
             </ProtectedRoute>
           }

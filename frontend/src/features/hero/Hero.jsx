@@ -8,23 +8,25 @@ function Hero() {
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-white text-6xl font-bold opacity-20">
-            <img src="public/img3.heic" alt="" />
+            [HERO BACKGROUND IMAGE]
+            <img src="public/eLanding.jpg" alt="" />
+            {/* <img src="public/img2.jpg" alt="" /> */}
           </div>
         </div>
       </div>
 
       {/* Hero Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center text-white">
+      <div className="relative z-10 container  px-4 text-left text-white">
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
           Eduardo Bernal Fernández
         </h1>
-        <p className="text-xl md:text-2xl mb-4 max-w-3xl mx-auto">
+        <p className="text-xl md:text-2xl mb-4 max-w-3xl ">
           Abogado Colegiado Nº 4941 ICAMA
         </p>
-        <p className="text-lg md:text-xl mb-8 max-w-3xl mx-auto">
+        <p className="text-lg md:text-xl mb-8 max-w-3xl ">
           Más de 25 años de experiencia en Derecho Penal, Civil y Contencioso-Administrativo
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-left">
           <a href="#contact" className="btn-accent text-lg">
             Consulta Gratuita
           </a>
