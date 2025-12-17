@@ -22,6 +22,7 @@ import Login from './pages/Login';
 
 // Dashboard pages (staff)
 import DashboardHome from './pages/dashboard/DashboardHome';
+import ClientsPage from './pages/dashboard/ClientsPage';
 
 // Portal pages (client)
 import PortalDashboard from './pages/portal/PortalDashboard';
@@ -51,6 +52,7 @@ function App() {
                   <Routes>
                     <Route index element={<Navigate to="/dashboard/home" replace />} />
                     <Route path="home" element={<DashboardHome />} />
+                    <Route path="clients" element={<ClientsPage />} />
                   </Routes>
                 </DashboardLayout>
               </RoleProtectedRoute>
