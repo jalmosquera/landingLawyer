@@ -6,6 +6,7 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -18,6 +19,32 @@ from .serializers import (
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer
 )
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Custom login view that returns user data along with tokens.
+    """
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == 200:
+            # Get the user from username
+            username = request.data.get('username')
+            try:
+                user = User.objects.get(username=username)
+                user_data = {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'name': user.name,
+                    'role': user.role,
+                }
+                response.data['user'] = user_data
+            except User.DoesNotExist:
+                pass
+
+        return response
 
 
 class UserViewSet(viewsets.ModelViewSet):
