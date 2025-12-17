@@ -2,12 +2,12 @@ import { FaBalanceScale, FaGem, FaBullseye, FaUsers, FaComments, FaStar } from '
 
 function About() {
   const values = [
-    { title: 'Experience', icon: FaBalanceScale },
-    { title: 'Honesty', icon: FaGem },
-    { title: 'Results', icon: FaBullseye },
-    { title: 'Community', icon: FaUsers },
-    { title: 'Free Consultations', icon: FaComments },
-    { title: 'Client Focus', icon: FaStar },
+    { title: 'Experiencia', icon: FaBalanceScale },
+    { title: 'Honestidad', icon: FaGem },
+    { title: 'Resultados', icon: FaBullseye },
+    { title: 'Compromiso', icon: FaUsers },
+    { title: 'Consultas Gratuitas', icon: FaComments },
+    { title: 'Atención Personalizada', icon: FaStar },
   ]
 
   return (
@@ -16,19 +16,16 @@ function About() {
         {/* Introduction */}
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-primary mb-6">
-            About Our Firm
+            Sobre el Despacho
           </h2>
           <p className="text-lg text-gray-700 mb-4">
-            About section lorem ipsum dolor sit amet, consectetur adipiscing elit,
-            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-            enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat.
+            Despacho de abogados especializado en Derecho Penal, Civil y Contencioso-Administrativo,
+            con más de 25 años de experiencia defendiendo los intereses de nuestros clientes
+            en Málaga, Ronda, Antequera, Coín, Sevilla y Madrid.
           </p>
           <p className="text-lg text-gray-700">
-            About section duis aute irure dolor in reprehenderit in voluptate velit
-            esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-            cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
-            id est laborum.
+            Ofrecemos tanto representación judicial ante los Tribunales como asesoramiento
+            extrajudicial, con especial énfasis en el sector inmobiliario y asuntos de naturaleza negocial.
           </p>
         </div>
 
@@ -38,28 +35,32 @@ function About() {
             <div className="w-full md:w-1/3">
               <div className="aspect-square bg-gradient-to-br from-primary to-primary-light rounded-lg flex items-center justify-center">
                 <span className="text-white text-4xl font-bold">
-                  [ATTORNEY PHOTO]
+                  [FOTO DEL ABOGADO]
                 </span>
               </div>
             </div>
             <div className="w-full md:w-2/3">
               <h3 className="text-3xl font-bold text-primary mb-4">
-                Meet Daniel Testa
+                Eduardo Bernal Fernández
               </h3>
-              <p className="text-gray-700 mb-4">
-                Attorney profile lorem ipsum dolor sit amet, consectetur adipiscing
-                elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-                aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.
+              <p className="text-sm text-gray-600 mb-4">
+                Colegiado Nº 4941 - Ilustre Colegio de Abogados de Málaga (ICAMA)
               </p>
               <p className="text-gray-700 mb-4">
-                Attorney profile duis aute irure dolor in reprehenderit in voluptate
-                velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-                occaecat cupidatat non proident.
+                Abogado en ejercicio con más de 25 años de experiencia exclusiva en el sector privado,
+                habiendo representado tanto a clientes institucionales como entidades públicas. Desarrolla
+                su labor profesional en la faceta judicial, compareciendo en representación y defensa de
+                los intereses de sus clientes ante los Tribunales Penales, Civiles y Contencioso-Administrativos.
+              </p>
+              <p className="text-gray-700 mb-4">
+                Distinguido por el Ilustre Colegio de Abogados de Málaga el 21 de octubre de 2025 por
+                sus 25 años de ejercicio profesional. Acreedor de una mención por su participación
+                como concejal del Ayuntamiento de Ardales en defensa de los intereses democráticos
+                imperantes en nuestro sistema político, social y judicial.
               </p>
               <p className="text-gray-700">
-                Attorney profile sunt in culpa qui officia deserunt mollit anim id
-                est laborum. Sed ut perspiciatis unde omnis iste natus error sit
-                voluptatem accusantium.
+                Cuenta con numerosos cursos de especialización en diferentes materias propias de su
+                profesión, incluyendo Derecho Notarial y Oratoria.
               </p>
             </div>
           </div>
@@ -68,7 +69,7 @@ function About() {
         {/* Values Grid */}
         <div className="max-w-6xl mx-auto">
           <h3 className="text-3xl font-bold text-primary text-center mb-12">
-            Our Values
+            Nuestros Valores
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {values.map((value, index) => {

@@ -8,7 +8,7 @@ function Hero() {
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-white text-6xl font-bold opacity-20">
-            [HERO BACKGROUND IMAGE]
+            <img src="public/img3.heic" alt="" />
           </div>
         </div>
       </div>
@@ -16,21 +16,23 @@ function Hero() {
       {/* Hero Content */}
       <div className="relative z-10 container mx-auto px-4 text-center text-white">
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
-          Building a Foundation for Your Future
+          Eduardo Bernal Fernández
         </h1>
-        <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-          Hero section lorem ipsum dolor sit amet, consectetur adipiscing elit.
-          Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        <p className="text-xl md:text-2xl mb-4 max-w-3xl mx-auto">
+          Abogado Colegiado Nº 4941 ICAMA
+        </p>
+        <p className="text-lg md:text-xl mb-8 max-w-3xl mx-auto">
+          Más de 25 años de experiencia en Derecho Penal, Civil y Contencioso-Administrativo
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a href="#contact" className="btn-accent text-lg">
-            Get Free Consultation
+            Consulta Gratuita
           </a>
           <a
             href="#about"
             className="bg-white text-primary hover:bg-gray-100 font-semibold py-3 px-8 rounded-lg transition-colors duration-300 text-lg"
           >
-            Learn More
+            Conoce Más
           </a>
         </div>
       </div>

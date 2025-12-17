@@ -75,3 +75,6 @@ coverage/
 # Production
 .vercel
 .railway
+
+# Project Assets (Private Documents)
+DocAssetsToProject/

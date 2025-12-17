@@ -29,21 +29,21 @@ function ContactForm() {
     const newErrors = {}
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Name is required'
+      newErrors.name = 'El nombre es requerido'
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required'
+      newErrors.email = 'El email es requerido'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid'
+      newErrors.email = 'El email no es válido'
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone is required'
+      newErrors.phone = 'El teléfono es requerido'
     }
 
     if (!formData.message.trim()) {
-      newErrors.message = 'Message is required'
+      newErrors.message = 'El mensaje es requerido'
     }
 
     return newErrors
@@ -56,7 +56,7 @@ function ContactForm() {
     if (Object.keys(newErrors).length === 0) {
       // Form is valid - In production, send to backend
       console.log('Form submitted:', formData)
-      alert('Thank you! We will contact you soon.')
+      alert('¡Gracias! Nos pondremos en contacto con usted pronto.')
       setFormData({ name: '', email: '', phone: '', message: '' })
     } else {
       setErrors(newErrors)
@@ -69,11 +69,11 @@ function ContactForm() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Get Your Free Consultation
+              Obtenga su Consulta Gratuita
             </h2>
             <p className="text-xl">
-              Contact form section lorem ipsum dolor sit amet, consectetur adipiscing
-              elit. We are here to help you with your legal needs.
+              Estamos aquí para ayudarle con sus necesidades legales. Contáctenos y
+              le responderemos a la brevedad posible.
             </p>
           </div>
 
@@ -85,7 +85,7 @@ function ContactForm() {
               {/* Name Field */}
               <div>
                 <label htmlFor="name" className="block text-sm font-semibold mb-2">
-                  Full Name *
+                  Nombre Completo *
                 </label>
                 <input
                   type="text"
@@ -96,7 +96,7 @@ function ContactForm() {
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent ${
                     errors.name ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="John Doe"
+                  placeholder="Juan Pérez"
                 />
                 {errors.name && (
                   <p className="text-red-500 text-sm mt-1">{errors.name}</p>
@@ -106,7 +106,7 @@ function ContactForm() {
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold mb-2">
-                  Email Address *
+                  Correo Electrónico *
                 </label>
                 <input
                   type="email"
@@ -117,7 +117,7 @@ function ContactForm() {
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="john@example.com"
+                  placeholder="juan@ejemplo.com"
                 />
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -128,7 +128,7 @@ function ContactForm() {
             {/* Phone Field */}
             <div className="mb-6">
               <label htmlFor="phone" className="block text-sm font-semibold mb-2">
-                Phone Number *
+                Número de Teléfono *
               </label>
               <input
                 type="tel"
@@ -139,7 +139,7 @@ function ContactForm() {
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent ${
                   errors.phone ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="(315) 255-3368"
+                placeholder="+34 600 000 000"
               />
               {errors.phone && (
                 <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
@@ -149,7 +149,7 @@ function ContactForm() {
             {/* Message Field */}
             <div className="mb-6">
               <label htmlFor="message" className="block text-sm font-semibold mb-2">
-                Message *
+                Mensaje *
               </label>
               <textarea
                 id="message"
@@ -160,7 +160,7 @@ function ContactForm() {
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent ${
                   errors.message ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Tell us about your legal needs..."
+                placeholder="Cuéntenos sobre su caso legal..."
               ></textarea>
               {errors.message && (
                 <p className="text-red-500 text-sm mt-1">{errors.message}</p>
@@ -172,7 +172,7 @@ function ContactForm() {
               type="submit"
               className="w-full btn-accent text-lg py-4"
             >
-              Send Message
+              Enviar Mensaje
             </button>
           </form>
         </div>

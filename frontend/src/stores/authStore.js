@@ -60,25 +60,19 @@ const useAuthStore = create((set, get) => ({
   },
 
   logout: async () => {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Error during logout:', error);
-    } finally {
-      // Clear localStorage
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
+    // Clear localStorage
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
 
-      // Reset state
-      set({
-        user: null,
-        accessToken: null,
-        refreshToken: null,
-        isAuthenticated: false,
-        error: null,
-      });
-    }
+    // Reset state
+    set({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      isAuthenticated: false,
+      error: null,
+    });
   },
 
   loadUser: () => {
@@ -86,7 +80,7 @@ const useAuthStore = create((set, get) => ({
     const refreshToken = localStorage.getItem('refresh_token');
     const userStr = localStorage.getItem('user');
 
-    if (accessToken && refreshToken && userStr) {
+    if (accessToken && refreshToken && userStr && userStr !== 'undefined') {
       try {
         const user = JSON.parse(userStr);
         set({
@@ -97,7 +91,10 @@ const useAuthStore = create((set, get) => ({
         });
       } catch (error) {
         console.error('Error loading user from localStorage:', error);
-        get().logout();
+        // Clear invalid data
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
       }
     }
   },

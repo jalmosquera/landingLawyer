@@ -1,43 +1,77 @@
+"""
+Serializers for Users API.
+"""
+
 from rest_framework import serializers
-from apps.users.models import CustomUser
+from apps.users.models import User, PasswordResetToken
 
 
 class UserSerializer(serializers.ModelSerializer):
     """
-    Serializer for user details (read-only operations).
+    Serializer for User model with password handling.
+    Used for creating and listing users (staff only).
     """
+    password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
-        model = CustomUser
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'phone', 'is_active', 'date_joined']
+        model = User
+        fields = [
+            'id', 'username', 'email', 'name', 'image', 'role', 'is_staff',
+            'phone', 'address', 'location', 'province', 'password', 'date_joined'
+        ]
         read_only_fields = ['id', 'date_joined']
 
-
-class UserCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for user creation.
-    """
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
-    password2 = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'}, label='Confirm Password')
-
-    class Meta:
-        model = CustomUser
-        fields = ['username', 'email', 'password', 'password2', 'first_name', 'last_name', 'role', 'phone']
-
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
-        return attrs
-
     def create(self, validated_data):
-        validated_data.pop('password2')
-        user = CustomUser.objects.create_user(**validated_data)
+        """
+        Create a new user with encrypted password.
+        """
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
         return user
 
+    def update(self, instance, validated_data):
+        """
+        Update user. If password is provided, encrypt it.
+        """
+        password = validated_data.pop('password', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
 
-class LoginSerializer(serializers.Serializer):
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
     """
-    Serializer for login endpoint.
+    Serializer for user profile (used in /me endpoint).
+    Read-only for most fields, allows updating contact info.
+    """
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email', 'name', 'image', 'role',
+            'phone', 'address', 'location', 'province', 'date_joined'
+        ]
+        read_only_fields = ['id', 'username', 'email', 'role', 'date_joined']
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """
+    Serializer for password reset request.
+    Validates email and triggers token generation.
     """
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer for password reset confirmation.
+    Validates token and new password.
+    """
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, min_length=8)

@@ -1,42 +1,42 @@
-import { FaHome, FaClipboardList, FaBalanceScale, FaUsers, FaHeart, FaBriefcase, FaAmbulance } from 'react-icons/fa'
+import { FaHome, FaGavel, FaBalanceScale, FaUsers, FaBriefcase, FaLandmark, FaHandshake } from 'react-icons/fa'
 import WaveDivider from '../../components/WaveDivider'
 
 function PracticeAreas() {
   const areas = [
     {
-      title: 'Real Estate',
-      description: 'Practice area lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-      icon: FaHome,
+      title: 'Derecho Penal',
+      description: 'Defensa y representación en procesos penales ante los tribunales de Málaga, Ronda, Antequera y otras jurisdicciones.',
+      icon: FaGavel,
     },
     {
-      title: 'Estate Planning',
-      description: 'Practice area sed do eiusmod tempor incididunt ut labore et dolore.',
-      icon: FaClipboardList,
-    },
-    {
-      title: 'Estate Administration',
-      description: 'Practice area ut enim ad minim veniam, quis nostrud exercitation.',
+      title: 'Derecho Civil',
+      description: 'Asesoramiento y litigación en asuntos civiles, incluyendo contratos, responsabilidad civil y reclamaciones.',
       icon: FaBalanceScale,
     },
     {
-      title: 'Family Law',
-      description: 'Practice area ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+      title: 'Derecho Contencioso-Administrativo',
+      description: 'Representación ante tribunales administrativos en defensa de los derechos frente a la Administración Pública.',
+      icon: FaLandmark,
+    },
+    {
+      title: 'Derecho Inmobiliario',
+      description: 'Especialización en transacciones inmobiliarias, contratos de compraventa, arrendamientos y conflictos de propiedad.',
+      icon: FaHome,
+    },
+    {
+      title: 'Derecho Familiar',
+      description: 'Asesoramiento en divorcios, custodia, pensiones alimenticias y otros asuntos de derecho de familia.',
       icon: FaUsers,
     },
     {
-      title: 'Adoption',
-      description: 'Practice area duis aute irure dolor in reprehenderit in voluptate.',
-      icon: FaHeart,
-    },
-    {
-      title: 'Bankruptcy',
-      description: 'Practice area velit esse cillum dolore eu fugiat nulla pariatur.',
+      title: 'Derecho Mercantil',
+      description: 'Consultoría y representación en asuntos comerciales, sociedades y contratos mercantiles.',
       icon: FaBriefcase,
     },
     {
-      title: 'Personal Injury',
-      description: 'Practice area excepteur sint occaecat cupidatat non proident.',
-      icon: FaAmbulance,
+      title: 'Asesoramiento Negocial',
+      description: 'Mediación y asesoramiento extrajudicial para la resolución de conflictos y negociaciones.',
+      icon: FaHandshake,
     },
   ]
 
@@ -45,11 +45,11 @@ function PracticeAreas() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-primary mb-6">
-            Areas of Practice
+            Áreas de Práctica
           </h2>
           <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Practice areas section lorem ipsum dolor sit amet, consectetur adipiscing
-            elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            Más de 25 años de experiencia en múltiples especialidades del derecho,
+            ofreciendo servicios integrales tanto en sede judicial como extrajudicial.
           </p>
         </div>
 
@@ -75,7 +75,7 @@ function PracticeAreas() {
                 <p className="text-gray-700 mb-4 text-center">{area.description}</p>
                 <div className="text-center">
                   <button className="text-accent font-semibold hover:underline">
-                    Learn More →
+                    Más Información →
                   </button>
                 </div>
               </div>
