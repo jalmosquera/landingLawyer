@@ -325,7 +325,7 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
       {filteredDocuments.length === 0 ? (
         <Card>
           <EmptyState
-            icon={<DocumentTextIcon className="h-16 w-16" />}
+            icon={DocumentTextIcon}
             title="No hay documentos"
             description={
               selectedCase !== 'all'
