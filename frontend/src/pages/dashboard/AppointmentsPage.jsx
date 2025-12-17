@@ -375,7 +375,7 @@ function AppointmentsPage() {
       {sortedAppointments.length === 0 ? (
         <Card>
           <EmptyState
-            icon={<CalendarIcon className="h-16 w-16" />}
+            icon={CalendarIcon}
             title="No hay citas"
             description={
               dateFilter !== 'all' || statusFilter !== 'all'

@@ -215,10 +215,10 @@ export const documentsAPI = {
     }),
 
   getAccessLog: (id) =>
-    api.get(`/documents/${id}/access-log/`),
+    api.get(`/documents/${id}/access-logs/`),
 
   accessLog: (id) =>
-    api.get(`/documents/${id}/access-log/`),
+    api.get(`/documents/${id}/access-logs/`),
 
   // Portal endpoints
   portal: {
