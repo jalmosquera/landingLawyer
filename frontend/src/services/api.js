@@ -99,9 +99,32 @@ export const authAPI = {
 };
 
 // ============================================================================
+// USERS API
+// ============================================================================
+export const usersAPI = {
+  getAll: (params) =>
+    api.get('/users/', { params }),
+
+  get: (id) =>
+    api.get(`/users/${id}/`),
+
+  create: (data) =>
+    api.post('/users/', data),
+
+  update: (id, data) =>
+    api.patch(`/users/${id}/`, data),
+
+  delete: (id) =>
+    api.delete(`/users/${id}/`),
+};
+
+// ============================================================================
 // CLIENTS API
 // ============================================================================
 export const clientsAPI = {
+  getAll: (params) =>
+    api.get('/clients/', { params }),
+
   list: (params) =>
     api.get('/clients/', { params }),
 
@@ -122,6 +145,9 @@ export const clientsAPI = {
 // CASES API
 // ============================================================================
 export const casesAPI = {
+  getAll: (params) =>
+    api.get('/cases/', { params }),
+
   list: (params) =>
     api.get('/cases/', { params }),
 
@@ -157,6 +183,9 @@ export const casesAPI = {
 // DOCUMENTS API
 // ============================================================================
 export const documentsAPI = {
+  getAll: (params) =>
+    api.get('/documents/', { params }),
+
   list: (params) =>
     api.get('/documents/', { params }),
 
@@ -185,6 +214,9 @@ export const documentsAPI = {
       responseType: 'blob',
     }),
 
+  getAccessLog: (id) =>
+    api.get(`/documents/${id}/access-log/`),
+
   accessLog: (id) =>
     api.get(`/documents/${id}/access-log/`),
 
@@ -207,6 +239,9 @@ export const documentsAPI = {
 // APPOINTMENTS API
 // ============================================================================
 export const appointmentsAPI = {
+  getAll: (params) =>
+    api.get('/appointments/', { params }),
+
   list: (params) =>
     api.get('/appointments/', { params }),
 
@@ -271,6 +306,9 @@ export const landingAPI = {
 
   // Staff endpoints
   services: {
+    getAll: () =>
+      api.get('/landing/services/'),
+
     list: () =>
       api.get('/landing/services/'),
 
@@ -288,6 +326,9 @@ export const landingAPI = {
   },
 
   testimonials: {
+    getAll: () =>
+      api.get('/landing/testimonials/'),
+
     list: () =>
       api.get('/landing/testimonials/'),
 
@@ -305,6 +346,9 @@ export const landingAPI = {
   },
 
   successCases: {
+    getAll: () =>
+      api.get('/landing/success-cases/'),
+
     list: () =>
       api.get('/landing/success-cases/'),
 
@@ -322,6 +366,9 @@ export const landingAPI = {
   },
 
   contactRequests: {
+    getAll: (params) =>
+      api.get('/landing/contact-requests/', { params }),
+
     list: (params) =>
       api.get('/landing/contact-requests/', { params }),
 
