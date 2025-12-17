@@ -1,25 +1,78 @@
-import Header from './features/header/Header'
-import Hero from './features/hero/Hero'
-import About from './features/about/About'
-import ContactForm from './features/contact-form/ContactForm'
-import PracticeAreas from './features/practice-areas/PracticeAreas'
-import Testimonials from './features/testimonials/Testimonials'
-import Footer from './features/footer/Footer'
+/**
+ * App Component
+ *
+ * Main app component with React Router configuration.
+ * Handles routing for landing, dashboard, and portal sections.
+ */
+
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import useAuthStore from './stores/authStore';
+
+// Components
+import ProtectedRoute from './components/ProtectedRoute';
+import RoleProtectedRoute from './components/RoleProtectedRoute';
+
+// Public pages
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+
+// Dashboard pages (staff)
+import DashboardHome from './pages/dashboard/DashboardHome';
+
+// Portal pages (client)
+import PortalDashboard from './pages/portal/PortalDashboard';
 
 function App() {
+  const { loadUser } = useAuthStore();
+
+  // Load user from localStorage on app start
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
+
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
-      <main>
-        <Hero />
-        <About />
-        <PracticeAreas />
-        <Testimonials />
-        <ContactForm />
-      </main>
-      <Footer />
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+
+        {/* Dashboard routes (staff only) */}
+        <Route
+          path="/dashboard/*"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['boss', 'employe']}>
+                <Routes>
+                  <Route index element={<Navigate to="/dashboard/home" replace />} />
+                  <Route path="home" element={<DashboardHome />} />
+                </Routes>
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Portal routes (clients) */}
+        <Route
+          path="/portal/*"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['client']}>
+                <Routes>
+                  <Route index element={<Navigate to="/portal/dashboard" replace />} />
+                  <Route path="dashboard" element={<PortalDashboard />} />
+                </Routes>
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Catch-all redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
