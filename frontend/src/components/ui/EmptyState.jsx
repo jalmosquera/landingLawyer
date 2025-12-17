@@ -8,7 +8,7 @@
 import Button from './Button'
 
 function EmptyState({
-  icon,
+  icon: Icon,
   title,
   description,
   actionLabel,
@@ -19,8 +19,10 @@ function EmptyState({
     <div
       className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}
     >
-      {icon && (
-        <div className="mb-4 text-gray-400 dark:text-gray-600">{icon}</div>
+      {Icon && (
+        <div className="mb-4 text-gray-400 dark:text-gray-600">
+          <Icon className="h-12 w-12 mx-auto" />
+        </div>
       )}
       {title && (
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
