@@ -48,9 +48,6 @@ class ClientViewSet(viewsets.ModelViewSet):
             return ClientCreateSerializer
         elif self.action in ['update', 'partial_update']:
             return ClientUpdateSerializer
-        elif self.action == 'list':
-            # Use minimal serializer for list to reduce payload
-            return ClientMinimalSerializer
         return ClientSerializer
 
     def get_queryset(self):
