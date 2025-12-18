@@ -201,6 +201,8 @@ class AppointmentMinimalSerializer(serializers.ModelSerializer):
     Minimal appointment serializer for nested representations.
     """
 
+    client_data = ClientMinimalSerializer(source='client', read_only=True, allow_null=True)
+    case_data = CaseMinimalSerializer(source='case', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     appointment_type_display = serializers.CharField(source='get_appointment_type_display', read_only=True)
 
@@ -208,6 +210,11 @@ class AppointmentMinimalSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = [
             'id',
+            'client',
+            'client_data',
+            'case',
+            'case_data',
+            'requested_by_name',
             'title',
             'starts_at',
             'ends_at',
