@@ -163,6 +163,7 @@ class CaseMinimalSerializer(serializers.ModelSerializer):
             'client_data',
             'case_number',
             'title',
+            'description',
             'case_type',
             'status',
             'status_display',
@@ -172,6 +173,7 @@ class CaseMinimalSerializer(serializers.ModelSerializer):
             'assigned_to_name',
             'opened_at',
             'closed_at',
+            'internal_notes',
         ]
         read_only_fields = fields
 
