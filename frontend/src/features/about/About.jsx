@@ -52,22 +52,26 @@ function About() {
               </p>
 
               <p className="text-gray-700 mb-4">
-                Abogado en ejercicio con más de 25 años de experiencia exclusiva en el sector privado,
-                habiendo representado tanto a clientes institucionales como entidades públicas. Desarrolla
-                su labor profesional en la faceta judicial, compareciendo en representación y defensa de
-                los intereses de sus clientes ante los Tribunales Penales, Civiles y Contencioso-Administrativos.
+                Abogado en ejercicio perteneciente al Ilustre Colegio de Abogados de Málaga. En el
+                ejercicio de la Abogacía, siempre en el sector privado, si bien ha contado con clientes
+                institucionales y entidades públicas; desarrolla su quehacer tanto en la faceta judicial
+                compareciendo en representación y defensa de los intereses de sus clientes, en los órdenes
+                y ante los Tribunales Penales, Civiles y Contencioso-Administrativos, tanto de Málaga,
+                Ronda, Antequera, Coín, Sevilla y Madrid, preferentemente; como en la faceta extrajudicial,
+                prioritariamente, en el sector inmobiliario y especialmente en asuntos de naturaleza negocial.
               </p>
 
               <p className="text-gray-700 mb-4">
-                Distinguido por el Ilustre Colegio de Abogados de Málaga el 21 de octubre de 2025 por
-                sus 25 años de ejercicio profesional. Acreedor de una mención por su participación
-                como concejal del Ayuntamiento de Ardales en defensa de los intereses democráticos
+                Desarrolla dicha profesión, de forma exclusiva, desde hace más de 25 años, siendo distinguido
+                por el Ilustre Colegio de Abogados de Málaga, por dicha razón, el pasado 21 de octubre de 2025.
+                Acreedor de una mención de su Colegio Profesional por haber participado, siendo miembro de este,
+                y a la vez concejal del Ayuntamiento de Ardales en defensa de los intereses democráticos
                 imperantes en nuestro sistema político, social y judicial.
               </p>
 
               <p className="text-gray-700">
-                Cuenta con numerosos cursos de especialización en diferentes materias propias de su
-                profesión, incluyendo Derecho Notarial y Oratoria.
+                Cuenta con numerosos cursos de especialización en diferentes materias propias de su profesión
+                como Derecho Notarial u Oratoria.
               </p>
             </div>
           </div>
