@@ -24,11 +24,12 @@ import {
   EmptyState,
   Badge,
 } from '../../components/ui'
-import { documentsAPI, casesAPI } from '../../services/api'
+import { documentsAPI, casesAPI, clientsAPI } from '../../services/api'
 
 function DocumentsPage() {
   const [documents, setDocuments] = useState([])
   const [cases, setCases] = useState([])
+  const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCase, setSelectedCase] = useState('all')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
@@ -37,8 +38,13 @@ function DocumentsPage() {
   const [selectedDocument, setSelectedDocument] = useState(null)
   const [accessLogs, setAccessLogs] = useState([])
 
+  // Client search state
+  const [clientSearchTerm, setClientSearchTerm] = useState('')
+  const [showClientDropdown, setShowClientDropdown] = useState(false)
+
   // Upload form state
   const [uploadData, setUploadData] = useState({
+    client: '',
     case: '',
     title: '',
     description: '',
@@ -60,17 +66,20 @@ function DocumentsPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [documentsRes, casesRes] = await Promise.all([
+      const [documentsRes, casesRes, clientsRes] = await Promise.all([
         documentsAPI.getAll().catch(() => ({ data: { results: [] } })),
         casesAPI.getAll().catch(() => ({ data: { results: [] } })),
+        clientsAPI.getAll().catch(() => ({ data: { results: [] } })),
       ])
 
       setDocuments(documentsRes.data.results || documentsRes.data)
       setCases(casesRes.data.results || casesRes.data)
+      setClients(clientsRes.data.results || clientsRes.data)
     } catch (error) {
       console.error('Error fetching data:', error)
       setDocuments([])
       setCases([])
+      setClients([])
     } finally {
       setLoading(false)
     }
@@ -110,6 +119,7 @@ function DocumentsPage() {
 
   const handleOpenUploadModal = () => {
     setUploadData({
+      client: '',
       case: '',
       title: '',
       description: '',
@@ -118,12 +128,15 @@ function DocumentsPage() {
       file: null,
     })
     setUploadErrors({})
+    setClientSearchTerm('')
+    setShowClientDropdown(false)
     setIsUploadModalOpen(true)
   }
 
   const handleCloseUploadModal = () => {
     setIsUploadModalOpen(false)
     setUploadData({
+      client: '',
       case: '',
       title: '',
       description: '',
@@ -132,6 +145,8 @@ function DocumentsPage() {
       file: null,
     })
     setUploadErrors({})
+    setClientSearchTerm('')
+    setShowClientDropdown(false)
   }
 
   const handleUploadChange = (e) => {
@@ -150,6 +165,9 @@ function DocumentsPage() {
 
   const validateUpload = () => {
     const errors = {}
+    if (!uploadData.client) {
+      errors.client = 'Debe seleccionar un cliente'
+    }
     if (!uploadData.case) {
       errors.case = 'Debe seleccionar un caso'
     }
@@ -160,6 +178,42 @@ function DocumentsPage() {
       errors.file = 'Debe seleccionar un archivo'
     }
     return errors
+  }
+
+  // Filter clients based on search term
+  const filteredClients = clients.filter((client) => {
+    if (!clientSearchTerm.trim()) return true
+    const searchLower = clientSearchTerm.toLowerCase()
+    return (
+      client.full_name?.toLowerCase().includes(searchLower) ||
+      client.identification_number?.toLowerCase().includes(searchLower) ||
+      client.email?.toLowerCase().includes(searchLower)
+    )
+  })
+
+  // Get cases for selected client
+  const clientCases = uploadData.client
+    ? cases.filter((c) => c.client === parseInt(uploadData.client))
+    : []
+
+  // Handle client selection
+  const handleClientSelect = (clientId) => {
+    setUploadData((prev) => ({ ...prev, client: clientId, case: '' }))
+    const selectedClient = clients.find((c) => c.id === clientId)
+    setClientSearchTerm(selectedClient?.full_name || '')
+    setShowClientDropdown(false)
+    if (uploadErrors.client) {
+      setUploadErrors((prev) => ({ ...prev, client: '' }))
+    }
+  }
+
+  // Handle client search input
+  const handleClientSearchChange = (e) => {
+    setClientSearchTerm(e.target.value)
+    setShowClientDropdown(true)
+    if (!e.target.value.trim()) {
+      setUploadData((prev) => ({ ...prev, client: '', case: '' }))
+    }
   }
 
   const handleUploadSubmit = async (e) => {
@@ -447,32 +501,102 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
             )}
 
             <div className="space-y-4">
-              {/* Case Selection */}
+              {/* Client Selection with Search */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Caso *
-                </label>
-                <select
-                  name="case"
-                  value={uploadData.case}
-                  onChange={handleUploadChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
-                    uploadErrors.case
-                      ? 'border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                >
-                  <option value="">Seleccionar caso</option>
-                  {cases.map((caseItem) => (
-                    <option key={caseItem.id} value={caseItem.id}>
-                      {caseItem.case_number || caseItem.title}
-                    </option>
-                  ))}
-                </select>
-                {uploadErrors.case && (
-                  <p className="text-red-500 text-sm mt-1">{uploadErrors.case}</p>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Cliente *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => window.open('/dashboard/clients', '_blank')}
+                    className="text-xs text-primary hover:text-primary-dark dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    + Crear Cliente
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={clientSearchTerm}
+                    onChange={handleClientSearchChange}
+                    onFocus={() => setShowClientDropdown(true)}
+                    placeholder="Buscar por nombre, cédula o email..."
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
+                      uploadErrors.client
+                        ? 'border-red-500'
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  />
+                  {showClientDropdown && filteredClients.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
+                      {filteredClients.map((client) => (
+                        <button
+                          key={client.id}
+                          type="button"
+                          onClick={() => handleClientSelect(client.id)}
+                          className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                        >
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {client.full_name}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {client.identification_number && (
+                              <span className="mr-3">
+                                {client.identification_type}: {client.identification_number}
+                              </span>
+                            )}
+                            {client.email}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {uploadErrors.client && (
+                  <p className="text-red-500 text-sm mt-1">{uploadErrors.client}</p>
+                )}
+                {uploadData.client && !showClientDropdown && (
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                    ✓ Cliente seleccionado: {clients.find(c => c.id === parseInt(uploadData.client))?.full_name}
+                  </p>
                 )}
               </div>
+
+              {/* Case Selection - Only shown when client is selected */}
+              {uploadData.client && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Caso *
+                  </label>
+                  {clientCases.length === 0 ? (
+                    <div className="px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-sm text-yellow-800 dark:text-yellow-200">
+                      Este cliente no tiene casos asignados. Por favor, crea un caso primero.
+                    </div>
+                  ) : (
+                    <select
+                      name="case"
+                      value={uploadData.case}
+                      onChange={handleUploadChange}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
+                        uploadErrors.case
+                          ? 'border-red-500'
+                          : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    >
+                      <option value="">Seleccionar caso</option>
+                      {clientCases.map((caseItem) => (
+                        <option key={caseItem.id} value={caseItem.id}>
+                          {caseItem.case_number || caseItem.title}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {uploadErrors.case && (
+                    <p className="text-red-500 text-sm mt-1">{uploadErrors.case}</p>
+                  )}
+                </div>
+              )}
 
               {/* Title */}
               <div>
