@@ -72,12 +72,7 @@ function PracticeAreas() {
                 <h3 className="text-2xl font-bold text-primary mb-3 text-center">
                   {area.title}
                 </h3>
-                <p className="text-gray-700 mb-4 text-center">{area.description}</p>
-                <div className="text-center">
-                  <button className="text-accent font-semibold hover:underline">
-                    Más Información →
-                  </button>
-                </div>
+                <p className="text-gray-700 text-center">{area.description}</p>
               </div>
             )
           })}

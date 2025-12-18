@@ -10,13 +10,13 @@ function Footer() {
   ]
 
   const practiceAreas = [
-    'Real Estate',
-    'Estate Planning',
-    'Estate Administration',
-    'Family Law',
-    'Adoption',
-    'Bankruptcy',
-    'Personal Injury',
+    'Derecho Penal',
+    'Derecho Civil',
+    'Derecho Contencioso-Administrativo',
+    'Derecho Inmobiliario',
+    'Derecho Familiar',
+    'Derecho Mercantil',
+    'Asesoramiento Negocial',
   ]
 
   return (
@@ -26,11 +26,11 @@ function Footer() {
           {/* About Column */}
           <div>
             <h3 className="text-2xl font-bold mb-4">
-              <span className="text-accent">Law</span> Firm
+              Eduardo <span className="text-accent">Bernal</span>
             </h3>
             <p className="text-gray-300 mb-4">
-              Footer about section lorem ipsum dolor sit amet, consectetur adipiscing
-              elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              Abogado con más de 25 años de experiencia en Derecho Penal, Civil y
+              Contencioso-Administrativo. Colegiado Nº 4941 del Ilustre Colegio de Abogados de Málaga.
             </p>
             <div className="flex gap-4">
               <a
@@ -99,32 +99,32 @@ function Footer() {
 
           {/* Contact Column */}
           <div>
-            <h4 className="text-xl font-bold mb-4">Contact Us</h4>
+            <h4 className="text-xl font-bold mb-4">Contacto</h4>
             <ul className="space-y-3 text-gray-300">
               <li className="flex items-start gap-2">
                 <span className="text-accent mt-1">📍</span>
                 <span>
-                  Footer address lorem ipsum dolor sit amet
+                  Málaga, Ronda, Antequera, Coín
                   <br />
-                  Syracuse, NY 13202
+                  Sevilla y Madrid
                 </span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-accent">📞</span>
                 <a
-                  href="tel:(315)255-3368"
+                  href="tel:+34952000000"
                   className="hover:text-accent transition-colors duration-300"
                 >
-                  (315) 255-3368
+                  +34 952 000 000
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-accent">✉️</span>
                 <a
-                  href="mailto:info@lawfirm.com"
+                  href="mailto:contacto@eduardobernal.com"
                   className="hover:text-accent transition-colors duration-300"
                 >
-                  info@lawfirm.com
+                  contacto@eduardobernal.com
                 </a>
               </li>
             </ul>
@@ -135,8 +135,7 @@ function Footer() {
         <div className="border-t border-gray-700 pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-300 text-sm">
-              © {currentYear} Law Firm. Footer copyright lorem ipsum dolor sit amet.
-              All rights reserved.
+              © {currentYear} Eduardo Bernal Fernández - Abogado. Todos los derechos reservados.
             </p>
             <div className="flex gap-6 text-sm">
               <a

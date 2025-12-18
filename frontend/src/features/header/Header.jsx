@@ -46,9 +46,6 @@ function Header() {
 
             {/* Contact Button */}
             <div className="hidden md:flex items-center space-x-4">
-              <a href="tel:(315)255-3368" className="text-accent font-semibold text-lg">
-                (315) 255-3368
-              </a>
               <button className="btn-accent">Free Consultation</button>
             </div>
 
