@@ -141,6 +141,7 @@ class DocumentMinimalSerializer(serializers.ModelSerializer):
     Used in case listings and other relations where full document details aren't needed.
     """
 
+    case_data = CaseMinimalSerializer(source='case', read_only=True)
     document_type_display = serializers.CharField(source='get_document_type_display', read_only=True)
     file_size_display = serializers.SerializerMethodField()
 
@@ -148,6 +149,8 @@ class DocumentMinimalSerializer(serializers.ModelSerializer):
         model = Document
         fields = [
             'id',
+            'case',
+            'case_data',
             'title',
             'document_type',
             'document_type_display',
