@@ -355,7 +355,7 @@ function CasesPage() {
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    {caseItem.client?.full_name || '-'}
+                    {caseItem.client_data?.full_name || '-'}
                   </Table.Cell>
                   <Table.Cell>
                     <Badge variant="default" size="sm">
