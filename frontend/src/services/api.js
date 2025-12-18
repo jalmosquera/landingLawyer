@@ -258,10 +258,10 @@ export const appointmentsAPI = {
     api.delete(`/appointments/${id}/`),
 
   syncGoogle: (id) =>
-    api.post(`/appointments/${id}/sync-google/`),
+    api.post(`/appointments/${id}/sync_google/`),
 
   bulkSync: () =>
-    api.post('/appointments/bulk-sync/'),
+    api.post('/appointments/bulk_sync/'),
 
   // Public endpoints
   public: {
