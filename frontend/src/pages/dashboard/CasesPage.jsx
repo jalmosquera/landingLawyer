@@ -130,7 +130,7 @@ function CasesPage() {
     if (caseItem) {
       setSelectedCase(caseItem)
       setFormData({
-        client: caseItem.client?.id || caseItem.client || '',
+        client: caseItem.client || '',
         title: caseItem.title || '',
         description: caseItem.description || '',
         case_type: caseItem.case_type || 'civil',
