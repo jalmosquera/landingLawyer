@@ -93,8 +93,12 @@ class CaseViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        """Set created_by to current user when creating case."""
-        serializer.save(created_by=self.request.user)
+        """Set created_by and assigned_to to current user when creating case."""
+        # If assigned_to is not provided, assign to the current user
+        if not serializer.validated_data.get('assigned_to'):
+            serializer.save(created_by=self.request.user, assigned_to=self.request.user)
+        else:
+            serializer.save(created_by=self.request.user)
 
     def perform_update(self, serializer):
         """Set updated_by to current user when updating case."""

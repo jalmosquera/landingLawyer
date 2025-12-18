@@ -23,14 +23,13 @@ import {
   EmptyState,
   Badge,
 } from '../../components/ui'
-import { casesAPI, clientsAPI, usersAPI } from '../../services/api'
+import { casesAPI, clientsAPI } from '../../services/api'
 import useAuthStore from '../../stores/authStore'
 
 function CasesPage() {
   const { user } = useAuthStore()
   const [cases, setCases] = useState([])
   const [clients, setClients] = useState([])
-  const [staffUsers, setStaffUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -42,7 +41,6 @@ function CasesPage() {
   // Form state
   const [formData, setFormData] = useState({
     client: '',
-    assigned_to: '',
     title: '',
     description: '',
     case_type: 'civil',
@@ -60,24 +58,17 @@ function CasesPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [casesRes, clientsRes, usersRes] = await Promise.all([
+      const [casesRes, clientsRes] = await Promise.all([
         casesAPI.getAll().catch(() => ({ data: { results: [] } })),
         clientsAPI.getAll().catch(() => ({ data: { results: [] } })),
-        usersAPI.getAll().catch(() => ({ data: { results: [] } })),
       ])
 
       setCases(casesRes.data.results || casesRes.data)
       setClients(clientsRes.data.results || clientsRes.data)
-      // Filter only staff users (boss, employe)
-      const staff = (usersRes.data.results || usersRes.data).filter(
-        (u) => u.role === 'boss' || u.role === 'employe'
-      )
-      setStaffUsers(staff)
     } catch (error) {
       console.error('Error fetching data:', error)
       setCases([])
       setClients([])
-      setStaffUsers([])
     } finally {
       setLoading(false)
     }
@@ -140,7 +131,6 @@ function CasesPage() {
       setSelectedCase(caseItem)
       setFormData({
         client: caseItem.client?.id || caseItem.client || '',
-        assigned_to: caseItem.assigned_to?.id || caseItem.assigned_to || '',
         title: caseItem.title || '',
         description: caseItem.description || '',
         case_type: caseItem.case_type || 'civil',
@@ -152,7 +142,6 @@ function CasesPage() {
       setSelectedCase(null)
       setFormData({
         client: '',
-        assigned_to: user?.id || '',
         title: '',
         description: '',
         case_type: 'civil',
@@ -170,7 +159,6 @@ function CasesPage() {
     setSelectedCase(null)
     setFormData({
       client: '',
-      assigned_to: '',
       title: '',
       description: '',
       case_type: 'civil',
@@ -193,9 +181,6 @@ function CasesPage() {
     const errors = {}
     if (!formData.client) {
       errors.client = 'Debe seleccionar un cliente'
-    }
-    if (!formData.assigned_to) {
-      errors.assigned_to = 'Debe asignar el caso a un abogado'
     }
     if (!formData.title.trim()) {
       errors.title = 'El título es requerido'
@@ -348,7 +333,6 @@ function CasesPage() {
                 <Table.HeaderCell>Tipo</Table.HeaderCell>
                 <Table.HeaderCell>Estado</Table.HeaderCell>
                 <Table.HeaderCell>Prioridad</Table.HeaderCell>
-                <Table.HeaderCell>Asignado a</Table.HeaderCell>
                 <Table.HeaderCell>Acciones</Table.HeaderCell>
               </tr>
             </Table.Header>
@@ -390,9 +374,6 @@ function CasesPage() {
                     >
                       {getPriorityLabel(caseItem.priority)}
                     </Badge>
-                  </Table.Cell>
-                  <Table.Cell>
-                    {caseItem.assigned_to?.name || '-'}
                   </Table.Cell>
                   <Table.Cell>
                     <div className="flex items-center gap-2">
@@ -459,35 +440,6 @@ function CasesPage() {
                 </select>
                 {formErrors.client && (
                   <p className="text-red-500 text-sm mt-1">{formErrors.client}</p>
-                )}
-              </div>
-
-              {/* Assigned To */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Asignado a *
-                </label>
-                <select
-                  name="assigned_to"
-                  value={formData.assigned_to}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
-                    formErrors.assigned_to
-                      ? 'border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                >
-                  <option value="">Seleccionar abogado</option>
-                  {staffUsers.map((staff) => (
-                    <option key={staff.id} value={staff.id}>
-                      {staff.name}
-                    </option>
-                  ))}
-                </select>
-                {formErrors.assigned_to && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formErrors.assigned_to}
-                  </p>
                 )}
               </div>
 
