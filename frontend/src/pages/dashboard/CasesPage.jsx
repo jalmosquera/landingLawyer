@@ -341,9 +341,12 @@ function CasesPage() {
                 <Table.Row key={caseItem.id}>
                   <Table.Cell>
                     <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
+                      <button
+                        onClick={() => handleOpenModal(caseItem)}
+                        className="font-bold text-primary hover:text-primary-dark dark:text-blue-400 dark:hover:text-blue-300 text-left transition-colors"
+                      >
                         {caseItem.title}
-                      </div>
+                      </button>
                       {caseItem.case_number && (
                         <div className="text-sm text-gray-500 dark:text-gray-400">
                           {caseItem.case_number}

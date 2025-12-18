@@ -298,7 +298,12 @@ function ClientsPage() {
               {filteredClients.map((client) => (
                 <Table.Row key={client.id}>
                   <Table.Cell>
-                    <div className="font-medium">{client.full_name}</div>
+                    <button
+                      onClick={() => handleOpenModal(client)}
+                      className="font-bold text-primary hover:text-primary-dark dark:text-blue-400 dark:hover:text-blue-300 text-left transition-colors"
+                    >
+                      {client.full_name}
+                    </button>
                   </Table.Cell>
                   <Table.Cell>{client.email}</Table.Cell>
                   <Table.Cell>{client.phone}</Table.Cell>
