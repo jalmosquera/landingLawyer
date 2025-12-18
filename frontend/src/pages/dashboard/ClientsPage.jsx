@@ -56,6 +56,8 @@ function ClientsPage() {
     state: '',
     postal_code: '',
     notes: '',
+    create_portal_access: false,
+    portal_password: '',
   })
   const [formErrors, setFormErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -92,6 +94,8 @@ function ClientsPage() {
         state: client.state || '',
         postal_code: client.postal_code || '',
         notes: client.notes || '',
+        create_portal_access: false,
+        portal_password: '',
       })
     } else {
       setSelectedClient(null)
@@ -106,6 +110,8 @@ function ClientsPage() {
         state: '',
         postal_code: '',
         notes: '',
+        create_portal_access: false,
+        portal_password: '',
       })
     }
     setFormErrors({})
@@ -119,20 +125,23 @@ function ClientsPage() {
       full_name: '',
       email: '',
       phone: '',
-      identification_type: 'DNI',
+      identification_type: 'ine',
       identification_number: '',
       address: '',
       city: '',
       state: '',
       postal_code: '',
       notes: '',
+      create_portal_access: false,
+      portal_password: '',
     })
     setFormErrors({})
   }
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    const { name, value, type, checked } = e.target
+    const fieldValue = type === 'checkbox' ? checked : value
+    setFormData((prev) => ({ ...prev, [name]: fieldValue }))
     // Clear error for this field
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: '' }))
@@ -506,6 +515,59 @@ function ClientsPage() {
                   placeholder="Notas privadas sobre el cliente..."
                 />
               </div>
+
+              {/* Portal Access - Only show when creating new client */}
+              {!selectedClient && (
+                <>
+                  <div className="md:col-span-2">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="create_portal_access"
+                        name="create_portal_access"
+                        checked={formData.create_portal_access}
+                        onChange={handleChange}
+                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                      />
+                      <label htmlFor="create_portal_access" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                        Crear acceso al portal del cliente
+                      </label>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Si activa esta opción, el cliente podrá iniciar sesión para ver sus casos y documentos
+                    </p>
+                  </div>
+
+                  {/* Password field - Only show when create_portal_access is checked */}
+                  {formData.create_portal_access && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Contraseña para el Portal <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        name="portal_password"
+                        value={formData.portal_password}
+                        onChange={handleChange}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
+                          formErrors.portal_password
+                            ? 'border-red-500'
+                            : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        placeholder="Mínimo 8 caracteres"
+                      />
+                      {formErrors.portal_password && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                          {formErrors.portal_password}
+                        </p>
+                      )}
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Esta contraseña será usada por el cliente para iniciar sesión. El nombre de usuario será generado automáticamente a partir del correo electrónico.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </Modal.Body>
           <Modal.Footer>

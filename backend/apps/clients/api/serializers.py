@@ -53,7 +53,11 @@ class ClientCreateSerializer(serializers.ModelSerializer):
     Serializer for creating new clients.
 
     Validates email uniqueness and handles user linking if provided.
+    Can automatically create a User account if create_portal_access is True.
     """
+
+    create_portal_access = serializers.BooleanField(write_only=True, required=False, default=False)
+    portal_password = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = Client
@@ -69,6 +73,8 @@ class ClientCreateSerializer(serializers.ModelSerializer):
             'state',
             'postal_code',
             'notes',
+            'create_portal_access',
+            'portal_password',
         ]
 
     def validate_email(self, value):
@@ -92,9 +98,54 @@ class ClientCreateSerializer(serializers.ModelSerializer):
                 )
         return value
 
+    def validate(self, attrs):
+        """Validate that password is provided if create_portal_access is True."""
+        create_portal = attrs.get('create_portal_access', False)
+        password = attrs.get('portal_password', '')
+
+        if create_portal and not password:
+            raise serializers.ValidationError({
+                'portal_password': 'La contraseña es requerida para crear acceso al portal.'
+            })
+
+        if create_portal and len(password) < 8:
+            raise serializers.ValidationError({
+                'portal_password': 'La contraseña debe tener al menos 8 caracteres.'
+            })
+
+        return attrs
+
     def create(self, validated_data):
-        """Create client and set created_by from request user."""
+        """Create client and optionally create User account for portal access."""
+        create_portal = validated_data.pop('create_portal_access', False)
+        portal_password = validated_data.pop('portal_password', None)
+
         validated_data['created_by'] = self.context['request'].user
+
+        # If user wants to create portal access, create User first
+        if create_portal and portal_password:
+            # Create username from email (before @)
+            username = validated_data['email'].split('@')[0]
+            base_username = username
+            counter = 1
+
+            # Ensure unique username
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+
+            # Create User account
+            user = User.objects.create_user(
+                username=username,
+                email=validated_data['email'],
+                password=portal_password,
+                name=validated_data['full_name'],
+                role='client',
+                is_active=True
+            )
+
+            validated_data['user'] = user
+
         return super().create(validated_data)
 
 
