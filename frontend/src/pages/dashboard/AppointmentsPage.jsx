@@ -425,7 +425,7 @@ function AppointmentsPage() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      {apt.client?.full_name || apt.requested_by_name || '-'}
+                      {apt.client_data?.full_name || apt.requested_by_name || '-'}
                     </Table.Cell>
                     <Table.Cell>
                       <div>

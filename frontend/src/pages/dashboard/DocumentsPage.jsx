@@ -420,9 +420,7 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    {cases.find((c) => c.id === doc.case)?.case_number ||
-                      cases.find((c) => c.id === doc.case)?.title ||
-                      '-'}
+                    {doc.case_data?.case_number || doc.case_data?.title || '-'}
                   </Table.Cell>
                   <Table.Cell>
                     <Badge variant="default" size="sm">

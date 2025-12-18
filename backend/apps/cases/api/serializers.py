@@ -150,6 +150,7 @@ class CaseMinimalSerializer(serializers.ModelSerializer):
     where full case details aren't needed.
     """
 
+    client_data = ClientMinimalSerializer(source='client', read_only=True)
     assigned_to_name = serializers.CharField(source='assigned_to.name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     priority_display = serializers.CharField(source='get_priority_display', read_only=True)
@@ -158,6 +159,8 @@ class CaseMinimalSerializer(serializers.ModelSerializer):
         model = Case
         fields = [
             'id',
+            'client',
+            'client_data',
             'case_number',
             'title',
             'case_type',
