@@ -204,7 +204,7 @@ export const documentsAPI = {
     api.delete(`/documents/${id}/`),
 
   notifyClient: (id, data) =>
-    api.post(`/documents/${id}/notify-client/`, data),
+    api.post(`/documents/${id}/notify_client/`, data),
 
   validateCode: (data) =>
     api.post('/documents/validate-code/', data),
@@ -215,10 +215,10 @@ export const documentsAPI = {
     }),
 
   getAccessLog: (id) =>
-    api.get(`/documents/${id}/access-logs/`),
+    api.get(`/documents/${id}/access_logs/`),
 
   accessLog: (id) =>
-    api.get(`/documents/${id}/access-logs/`),
+    api.get(`/documents/${id}/access_logs/`),
 
   // Portal endpoints
   portal: {
