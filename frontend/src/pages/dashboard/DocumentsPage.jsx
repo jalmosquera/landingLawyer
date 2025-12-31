@@ -100,6 +100,20 @@ function DocumentsPage() {
     return labels[type] || type
   }
 
+  const getEventTypeLabel = (eventType) => {
+    const labels = {
+      upload: 'Subida',
+      download: 'Descarga',
+      code_validated: 'Código Validado',
+      notification_sent: 'Notificación Enviada',
+      access_denied: 'Acceso Denegado',
+      token_expired: 'Token Expirado',
+      access: 'Acceso',
+      view: 'Visualización',
+    }
+    return labels[eventType] || eventType
+  }
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
@@ -874,7 +888,7 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
                   {accessLogs.map((log, index) => (
                     <tr key={index}>
                       <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
-                        {log.event_type}
+                        {getEventTypeLabel(log.event_type)}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                         {log.user?.name || 'Sistema'}
