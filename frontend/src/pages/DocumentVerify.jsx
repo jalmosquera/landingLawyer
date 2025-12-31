@@ -1,0 +1,421 @@
+/**
+ * Document Verification Page
+ *
+ * Public page where clients can enter their 6-digit access code
+ * to download sensitive documents sent by their lawyer.
+ *
+ * Flow:
+ * 1. Client receives email/WhatsApp with 6-digit code
+ * 2. Client enters code + email on this page
+ * 3. System validates code and generates download token
+ * 4. Client can download the document
+ */
+
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  DocumentTextIcon,
+  KeyIcon,
+  EnvelopeIcon,
+  ArrowDownTrayIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
+import { Button, Card, LoadingSpinner } from '../components/ui'
+import { documentsAPI } from '../services/api'
+
+function DocumentVerify() {
+  const navigate = useNavigate()
+
+  // Form state
+  const [formData, setFormData] = useState({
+    access_code: '',
+    email: '',
+  })
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Download state
+  const [downloadData, setDownloadData] = useState(null)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [downloadSuccess, setDownloadSuccess] = useState(false)
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }))
+    }
+  }
+
+  const validate = () => {
+    const newErrors = {}
+
+    if (!formData.access_code.trim()) {
+      newErrors.access_code = 'El código de acceso es requerido'
+    } else if (formData.access_code.length !== 6) {
+      newErrors.access_code = 'El código debe tener 6 dígitos'
+    } else if (!/^\d{6}$/.test(formData.access_code)) {
+      newErrors.access_code = 'El código debe contener solo números'
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'El email es requerido'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Email inválido'
+    }
+
+    return newErrors
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    const validationErrors = validate()
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      setErrors({})
+
+      const response = await documentsAPI.validateCode(formData)
+
+      // Store download data
+      setDownloadData(response.data)
+    } catch (error) {
+      console.error('Error validating code:', error)
+
+      if (error.response?.status === 404) {
+        setErrors({
+          general: 'Código de acceso inválido o ya utilizado',
+        })
+      } else if (error.response?.status === 410) {
+        setErrors({
+          general:
+            'El código de acceso ha expirado. Solicita uno nuevo a tu abogado.',
+        })
+      } else if (error.response?.status === 403) {
+        setErrors({
+          general: 'El email no coincide con el destinatario del código',
+        })
+      } else {
+        setErrors({
+          general:
+            error.response?.data?.detail ||
+            'Error al validar el código. Intenta nuevamente.',
+        })
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDownload = async () => {
+    if (!downloadData?.download_token) return
+
+    try {
+      setIsDownloading(true)
+
+      const response = await documentsAPI.download(downloadData.download_token)
+
+      // Create blob and download
+      const blob = new Blob([response.data])
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = downloadData.document_title || 'documento.pdf'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      setDownloadSuccess(true)
+    } catch (error) {
+      console.error('Error downloading document:', error)
+
+      if (error.response?.status === 404) {
+        setErrors({
+          general: 'Token de descarga inválido o ya utilizado',
+        })
+      } else if (error.response?.status === 410) {
+        setErrors({
+          general:
+            'El token de descarga ha expirado. Valida tu código nuevamente.',
+        })
+      } else {
+        setErrors({
+          general: 'Error al descargar el documento. Intenta nuevamente.',
+        })
+      }
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const formatExpiresAt = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toLocaleString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+      {/* Header */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <DocumentTextIcon className="h-8 w-8 text-primary dark:text-blue-400" />
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                Verificar Documento
+              </h1>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              size="sm"
+            >
+              Volver al inicio
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        {!downloadData && !downloadSuccess && (
+          <Card>
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
+                <KeyIcon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Ingresar Código de Acceso
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Ingresa el código de 6 dígitos que recibiste por email o WhatsApp
+              </p>
+            </div>
+
+            {errors.general && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+                <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800 dark:text-red-200">
+                  {errors.general}
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label
+                  htmlFor="access_code"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Código de Acceso
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <KeyIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    id="access_code"
+                    name="access_code"
+                    value={formData.access_code}
+                    onChange={handleChange}
+                    placeholder="123456"
+                    maxLength={6}
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg text-center text-2xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
+                      errors.access_code
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  />
+                </div>
+                {errors.access_code && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.access_code}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Email de Verificación
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="tu@email.com"
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
+                      errors.email
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Ingresa el mismo email al que te llegó el código
+                </p>
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                className="w-full"
+                size="lg"
+                isLoading={isSubmitting}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Verificando...' : 'Verificar Código'}
+              </Button>
+            </form>
+
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2 text-sm">
+                  ¿No recibiste tu código?
+                </h4>
+                <p className="text-xs text-blue-800 dark:text-blue-300">
+                  Contacta a tu abogado para solicitar un nuevo código de acceso.
+                  El código es válido por 24 horas desde su envío.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {downloadData && !downloadSuccess && (
+          <Card>
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
+                <CheckCircleIcon className="h-8 w-8 text-green-600 dark:text-green-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Código Verificado
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Tu documento está listo para descargar
+              </p>
+            </div>
+
+            {errors.general && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+                <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800 dark:text-red-200">
+                  {errors.general}
+                </p>
+              </div>
+            )}
+
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
+              <div className="flex items-start gap-4">
+                <DocumentTextIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                    {downloadData.document_title}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Documento ID: {downloadData.document_id}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                <strong>Importante:</strong> Este enlace de descarga expira el{' '}
+                {formatExpiresAt(downloadData.expires_at)}. El documento solo
+                puede descargarse una vez.
+              </p>
+            </div>
+
+            <Button
+              variant="primary"
+              className="w-full"
+              size="lg"
+              onClick={handleDownload}
+              isLoading={isDownloading}
+              disabled={isDownloading}
+              leftIcon={<ArrowDownTrayIcon className="h-5 w-5" />}
+            >
+              {isDownloading ? 'Descargando...' : 'Descargar Documento'}
+            </Button>
+          </Card>
+        )}
+
+        {downloadSuccess && (
+          <Card>
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full mb-6">
+                <CheckCircleIcon className="h-12 w-12 text-green-600 dark:text-green-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                ¡Descarga Exitosa!
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">
+                Tu documento se ha descargado correctamente
+              </p>
+
+              <div className="space-y-3">
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setDownloadSuccess(false)
+                    setDownloadData(null)
+                    setFormData({ access_code: '', email: '' })
+                    setErrors({})
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  Verificar Otro Código
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/')}
+                  className="w-full sm:w-auto"
+                >
+                  Volver al Inicio
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            Sistema seguro de verificación de documentos
+          </p>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+export default DocumentVerify

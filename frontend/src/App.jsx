@@ -20,6 +20,8 @@ import PortalLayout from './layouts/PortalLayout';
 // Public pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import DocumentVerify from './pages/DocumentVerify';
 
 // Dashboard pages (staff)
 import DashboardHome from './pages/dashboard/DashboardHome';
@@ -50,6 +52,8 @@ function App() {
         {/* Public routes */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/documents/verify" element={<DocumentVerify />} />
 
         {/* Dashboard routes (staff only) */}
         <Route

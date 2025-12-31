@@ -207,10 +207,10 @@ export const documentsAPI = {
     api.post(`/documents/${id}/notify_client/`, data),
 
   validateCode: (data) =>
-    api.post('/documents/validate-code/', data),
+    api.post('/public/documents/validate-code/', data),
 
   download: (token) =>
-    api.get(`/documents/download/${token}/`, {
+    api.get(`/public/documents/download/${token}/`, {
       responseType: 'blob',
     }),
 
