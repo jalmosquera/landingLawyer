@@ -11,7 +11,7 @@
  * 4. Client can download the document
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   DocumentTextIcon,
@@ -23,9 +23,11 @@ import {
 } from '@heroicons/react/24/outline'
 import { Button, Card, LoadingSpinner } from '../components/ui'
 import { documentsAPI } from '../services/api'
+import useAuthStore from '../stores/authStore'
 
 function DocumentVerify() {
   const navigate = useNavigate()
+  const { user, isAuthenticated } = useAuthStore()
 
   // Form state
   const [formData, setFormData] = useState({
@@ -39,6 +41,13 @@ function DocumentVerify() {
   const [downloadData, setDownloadData] = useState(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadSuccess, setDownloadSuccess] = useState(false)
+
+  // Auto-fill email if user is logged in
+  useEffect(() => {
+    if (isAuthenticated && user?.email) {
+      setFormData((prev) => ({ ...prev, email: user.email }))
+    }
+  }, [isAuthenticated, user])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -81,12 +90,15 @@ function DocumentVerify() {
       setIsSubmitting(true)
       setErrors({})
 
+      console.log('Enviando validación:', formData)
       const response = await documentsAPI.validateCode(formData)
+      console.log('Respuesta recibida:', response.data)
 
       // Store download data
       setDownloadData(response.data)
     } catch (error) {
-      console.error('Error validating code:', error)
+      console.error('Error validando código:', error)
+      console.error('Detalles del error:', error.response?.data)
 
       if (error.response?.status === 404) {
         setErrors({
@@ -100,6 +112,14 @@ function DocumentVerify() {
       } else if (error.response?.status === 403) {
         setErrors({
           general: 'El email no coincide con el destinatario del código',
+        })
+      } else if (error.response?.status === 400) {
+        setErrors({
+          general:
+            error.response?.data?.detail ||
+            error.response?.data?.error ||
+            Object.values(error.response?.data || {}).flat().join('. ') ||
+            'Datos inválidos. Verifica el código y el email.',
         })
       } else {
         setErrors({
@@ -206,6 +226,19 @@ function DocumentVerify() {
               </p>
             </div>
 
+            {isAuthenticated && (
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3">
+                <CheckCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-800 dark:text-blue-200">
+                  <p className="font-medium">Sesión activa detectada</p>
+                  <p className="text-xs mt-1">
+                    Tu email ({user?.email}) se usará automáticamente para la
+                    verificación
+                  </p>
+                </div>
+              </div>
+            )}
+
             {errors.general && (
               <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
                 <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
@@ -255,6 +288,11 @@ function DocumentVerify() {
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
                   Email de Verificación
+                  {isAuthenticated && (
+                    <span className="ml-2 text-xs font-normal text-green-600 dark:text-green-400">
+                      ✓ Detectado automáticamente
+                    </span>
+                  )}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -267,7 +305,12 @@ function DocumentVerify() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="tu@email.com"
+                    readOnly={isAuthenticated}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
+                      isAuthenticated
+                        ? 'bg-gray-50 dark:bg-gray-800 cursor-not-allowed'
+                        : ''
+                    } ${
                       errors.email
                         ? 'border-red-500 focus:ring-red-500'
                         : 'border-gray-300 dark:border-gray-600'
@@ -277,9 +320,15 @@ function DocumentVerify() {
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                 )}
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Ingresa el mismo email al que te llegó el código
-                </p>
+                {isAuthenticated ? (
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                    Usando tu email de sesión actual
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Ingresa el mismo email al que te llegó el código
+                  </p>
+                )}
               </div>
 
               <Button

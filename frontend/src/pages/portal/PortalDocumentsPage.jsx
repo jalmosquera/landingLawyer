@@ -134,7 +134,7 @@ function PortalDocumentsPage() {
               Algunos documentos requieren un código de 6 dígitos para su descarga.
               Recibirás este código por email y WhatsApp cuando un documento esté disponible.
             </p>
-            <Link to="/portal/documents/verify" className="inline-block mt-2">
+            <Link to="/documents/verify" className="inline-block mt-2">
               <span className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
                 Verificar código de acceso →
               </span>
@@ -206,7 +206,7 @@ function PortalDocumentsPage() {
                     {/* Actions */}
                     <div className="mt-4">
                       {doc.is_sensitive ? (
-                        <Link to="/portal/documents/verify">
+                        <Link to="/documents/verify">
                           <Button variant="accent" size="sm">
                             <ShieldCheckIcon className="h-4 w-4 mr-2" />
                             Verificar código
