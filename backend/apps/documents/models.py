@@ -299,10 +299,12 @@ class DocumentAccessToken(models.Model):
         - Download tokens: URL-safe, valid for 1 hour
         """
         if not self.pk:
-            if self.token_type == 'access':
-                # Generate 6-digit code (100000-999999)
+            if self.token_type == 'access' and not self.access_code:
+                # Generate 6-digit code only if not already set (100000-999999)
                 self.access_code = f"{secrets.randbelow(900000) + 100000}"
-                # Valid for 24 hours
+
+            if self.token_type == 'access' and not self.expires_at:
+                # Set expiry to 24 hours if not already set
                 self.expires_at = timezone.now() + timedelta(hours=24)
 
             elif self.token_type == 'download':

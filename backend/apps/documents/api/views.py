@@ -233,16 +233,16 @@ class ValidateCodeView(views.APIView):
         access_code = serializer.validated_data['access_code']
         email = serializer.validated_data['email']
 
-        # Find valid access token
-        try:
-            access_token = DocumentAccessToken.objects.select_related(
-                'document', 'client'
-            ).get(
-                access_code=access_code,
-                token_type='access',
-                used=False
-            )
-        except DocumentAccessToken.DoesNotExist:
+        # Find ALL access tokens with this code (multiple documents can share same code)
+        access_tokens = DocumentAccessToken.objects.select_related(
+            'document', 'client'
+        ).filter(
+            access_code=access_code,
+            token_type='access',
+            used=False
+        )
+
+        if not access_tokens.exists():
             # Log failed attempt
             DocumentAccessLog.objects.create(
                 document=None,
@@ -259,15 +259,18 @@ class ValidateCodeView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Increment attempts
-        access_token.attempts += 1
-        access_token.save(update_fields=['attempts'])
+        # Use first token for validation (all share same code/expiry/client)
+        first_token = access_tokens.first()
+
+        # Increment attempts on first token
+        first_token.attempts += 1
+        first_token.save(update_fields=['attempts'])
 
         # Check if expired
-        if not access_token.is_valid():
+        if not first_token.is_valid():
             DocumentAccessLog.objects.create(
-                document=access_token.document,
-                user=access_token.client,
+                document=first_token.document,
+                user=first_token.client,
                 event_type='token_expired',
                 success=False,
                 details=f'Token expirado: {access_code}',
@@ -281,9 +284,9 @@ class ValidateCodeView(views.APIView):
             )
 
         # Verify email matches client
-        if access_token.client.email.lower() != email.lower():
+        if first_token.client.email.lower() != email.lower():
             DocumentAccessLog.objects.create(
-                document=access_token.document,
+                document=first_token.document,
                 user=None,
                 event_type='access_denied',
                 success=False,
@@ -297,45 +300,55 @@ class ValidateCodeView(views.APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Mark access token as used
-        access_token.mark_as_used(
-            ip_address=get_client_ip(request),
-            user_agent=request.META.get('HTTP_USER_AGENT', '')
-        )
+        # Mark ALL access tokens as used and create download tokens for ALL documents
+        documents_data = []
 
-        # Create download token
-        download_token = DocumentAccessToken.objects.create(
-            document=access_token.document,
-            requested_by=access_token.requested_by,
-            client=access_token.client,
-            token_type='download'
-        )
+        for access_token in access_tokens:
+            # Mark as used
+            access_token.mark_as_used(
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
 
-        # Log successful validation
-        DocumentAccessLog.objects.create(
-            document=access_token.document,
-            user=access_token.client,
-            event_type='code_validated',
-            success=True,
-            details=f'Código validado exitosamente: {access_code}',
-            ip_address=get_client_ip(request),
-            user_agent=request.META.get('HTTP_USER_AGENT', '')
-        )
+            # Create download token
+            download_token = DocumentAccessToken.objects.create(
+                document=access_token.document,
+                requested_by=access_token.requested_by,
+                client=access_token.client,
+                token_type='download'
+            )
 
-        # Build download URL
-        download_url = request.build_absolute_uri(
-            f'/api/public/documents/download/{download_token.download_token}/'
-        )
+            # Log successful validation
+            DocumentAccessLog.objects.create(
+                document=access_token.document,
+                user=access_token.client,
+                event_type='code_validated',
+                success=True,
+                details=f'Código validado exitosamente: {access_code}',
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
 
-        response_serializer = DownloadTokenResponseSerializer({
-            'download_token': download_token.download_token,
-            'document_id': access_token.document.id,
-            'document_title': access_token.document.title,
-            'expires_at': download_token.expires_at,
-            'download_url': download_url
-        })
+            # Build download URL
+            download_url = request.build_absolute_uri(
+                f'/api/public/documents/download/{download_token.download_token}/'
+            )
 
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+            # Add document data
+            documents_data.append({
+                'download_token': download_token.download_token,
+                'document_id': access_token.document.id,
+                'document_title': access_token.document.title,
+                'original_filename': access_token.document.original_filename,
+                'expires_at': download_token.expires_at,
+                'download_url': download_url
+            })
+
+        # Return list of documents
+        return Response({
+            'documents': documents_data,
+            'total': len(documents_data)
+        }, status=status.HTTP_200_OK)
 
 
 class DownloadDocumentView(views.APIView):

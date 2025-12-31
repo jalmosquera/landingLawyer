@@ -18,37 +18,60 @@ class DocumentNotificationService:
     """Service for handling document notifications."""
 
     @staticmethod
-    def create_access_token(document, client, requested_by):
+    def create_access_tokens_for_case(case, client, requested_by):
         """
-        Create a new access token for document download.
+        Create access tokens for ALL sensitive documents in a case.
 
-        Invalidates any previous unused tokens for the same document/client pair.
+        All documents will share the same 6-digit access code.
 
         Args:
-            document: Document instance
+            case: Case instance
             client: User instance (with role='client')
             requested_by: User instance (staff who initiated notification)
 
         Returns:
-            DocumentAccessToken instance with generated 6-digit code
+            tuple: (access_code, list of DocumentAccessToken instances)
         """
-        # Invalidate previous unused tokens
+        from apps.documents.models import Document
+        import secrets
+
+        # Get all sensitive documents in this case that haven't been notified
+        documents = Document.objects.filter(
+            case=case,
+            is_sensitive=True,
+            notification_sent=False
+        )
+
+        if not documents.exists():
+            return None, []
+
+        # Generate ONE access code for all documents
+        access_code = f"{secrets.randbelow(900000) + 100000}"
+        expires_at = timezone.now() + timedelta(hours=24)
+
+        # Invalidate previous unused tokens for these documents
         DocumentAccessToken.objects.filter(
-            document=document,
+            document__in=documents,
             client=client,
             token_type='access',
             used=False
         ).update(used=True, used_at=timezone.now())
 
-        # Create new token
-        token = DocumentAccessToken.objects.create(
-            document=document,
-            requested_by=requested_by,
-            client=client,
-            token_type='access'
-        )
+        # Create tokens for all documents with the SAME access code
+        tokens = []
+        for document in documents:
+            token = DocumentAccessToken(
+                document=document,
+                requested_by=requested_by,
+                client=client,
+                token_type='access',
+                access_code=access_code,
+                expires_at=expires_at
+            )
+            token.save()
+            tokens.append(token)
 
-        return token
+        return access_code, tokens
 
     @staticmethod
     def send_email_notification(document, access_token):
@@ -178,13 +201,114 @@ Válido hasta: {access_token.expires_at.strftime('%d/%m/%Y %H:%M')}"""
             # wa.me link without phone (user selects contact)
             return f"https://wa.me/?text={encoded_message}"
 
+    @staticmethod
+    def send_email_notification_multi(tokens, reference_token):
+        """
+        Send email notification for MULTIPLE documents.
+
+        Args:
+            tokens: List of DocumentAccessToken instances (all with same access_code)
+            reference_token: First token for reference data
+
+        Returns:
+            bool: True if email sent successfully
+        """
+        document = reference_token.document
+        access_token = reference_token
+        case = document.case
+        client = case.client
+
+        # Build list of documents
+        documents_list = [token.document for token in tokens]
+
+        try:
+            subject = f'Nuevos documentos disponibles - Caso {case.case_number}'
+
+            html_content = render_to_string('emails/document_notification.html', {
+                'client_name': client.full_name or client.user.username,
+                'case_number': case.case_number,
+                'case_title': case.title,
+                'documents': documents_list,  # List of documents
+                'documents_count': len(documents_list),
+                'access_code': access_token.access_code,
+                'expires_at': access_token.expires_at,
+                'verification_url': f"{settings.FRONTEND_URL}/documents/verify",
+                'frontend_url': settings.FRONTEND_URL,
+            })
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=f'Código de acceso: {access_token.access_code}',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[client.email]
+            )
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+
+            return True
+
+        except Exception as e:
+            print(f"Error sending email: {e}")
+            return False
+
+    @staticmethod
+    def generate_whatsapp_link_multi(tokens, reference_token):
+        """
+        Generate WhatsApp link for MULTIPLE documents.
+
+        Args:
+            tokens: List of DocumentAccessToken instances
+            reference_token: First token for reference data
+
+        Returns:
+            str: WhatsApp wa.me link
+        """
+        from urllib.parse import quote
+
+        document = reference_token.document
+        access_token = reference_token
+        case = document.case
+        client = case.client
+
+        # Get client phone number
+        phone = client.phone
+        if phone and not phone.startswith('52'):
+            # Assume Mexican number, add country code
+            phone = phone.replace('+', '').replace(' ', '').replace('-', '')
+            if len(phone) == 10:
+                phone = f'52{phone}'
+
+        # Prepare message with document count
+        documents_count = len(tokens)
+        message = f"""Hola {client.full_name}, tienes {documents_count} nuevo{'s' if documents_count > 1 else ''} documento{'s' if documents_count > 1 else ''} disponible{'s' if documents_count > 1 else ''} para el caso {case.case_number}.
+
+📄 {documents_count} documento{'s' if documents_count > 1 else ''}
+
+🔑 Código de acceso: {access_token.access_code}
+
+🔗 Ingresa en: {settings.FRONTEND_URL}/documents/verify
+
+⏰ Válido hasta: {access_token.expires_at.strftime('%d/%m/%Y %H:%M')}"""
+
+        # URL encode message
+        encoded_message = quote(message)
+
+        # Generate WhatsApp link
+        if phone:
+            return f"https://wa.me/{phone}?text={encoded_message}"
+        else:
+            return f"https://wa.me/?text={encoded_message}"
+
     @classmethod
     def notify_client(cls, document, requested_by):
         """
-        Complete notification flow: create token, send email, return WhatsApp link.
+        Complete notification flow: create tokens for ALL sensitive documents in case.
+
+        When notifying ONE document, we notify ALL pending sensitive documents
+        from the same case with a single shared access code.
 
         Args:
-            document: Document instance
+            document: Document instance (triggers notification for whole case)
             requested_by: User instance (staff)
 
         Returns:
@@ -193,11 +317,13 @@ Válido hasta: {access_token.expires_at.strftime('%d/%m/%Y %H:%M')}"""
                 'access_code': str,
                 'email_sent': bool,
                 'whatsapp_link': str,
-                'expires_at': datetime
+                'expires_at': datetime,
+                'documents_count': int
             }
         """
-        # Get client from case
-        client = document.case.client.user
+        # Get client and case
+        case = document.case
+        client = case.client.user
 
         if not client or client.role != 'client':
             return {
@@ -205,19 +331,35 @@ Válido hasta: {access_token.expires_at.strftime('%d/%m/%Y %H:%M')}"""
                 'error': 'El cliente no tiene cuenta de usuario o no tiene rol de cliente.'
             }
 
-        # Create access token
-        access_token = cls.create_access_token(document, client, requested_by)
+        # Create access tokens for ALL sensitive documents in the case
+        access_code, tokens = cls.create_access_tokens_for_case(case, client, requested_by)
 
-        # Send email
-        email_sent = cls.send_email_notification(document, access_token)
+        if not tokens:
+            return {
+                'success': False,
+                'error': 'No hay documentos sensibles pendientes de notificación en este caso.'
+            }
 
-        # Generate WhatsApp link
-        whatsapp_link = cls.generate_whatsapp_link(document, access_token)
+        # Get first token for reference (all share same code and expiry)
+        first_token = tokens[0]
+
+        # Mark ALL documents as notified
+        from apps.documents.models import Document
+        Document.objects.filter(
+            id__in=[token.document.id for token in tokens]
+        ).update(notification_sent=True)
+
+        # Send email with list of ALL documents
+        email_sent = cls.send_email_notification_multi(tokens, first_token)
+
+        # Generate WhatsApp link with document count
+        whatsapp_link = cls.generate_whatsapp_link_multi(tokens, first_token)
 
         return {
             'success': True,
-            'access_code': access_token.access_code,
+            'access_code': access_code,
             'email_sent': email_sent,
             'whatsapp_link': whatsapp_link,
-            'expires_at': access_token.expires_at
+            'expires_at': first_token.expires_at,
+            'documents_count': len(tokens)
         }

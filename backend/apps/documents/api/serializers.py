@@ -144,6 +144,7 @@ class DocumentMinimalSerializer(serializers.ModelSerializer):
     case_data = CaseMinimalSerializer(source='case', read_only=True)
     document_type_display = serializers.CharField(source='get_document_type_display', read_only=True)
     file_size_display = serializers.SerializerMethodField()
+    file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
@@ -152,11 +153,13 @@ class DocumentMinimalSerializer(serializers.ModelSerializer):
             'case',
             'case_data',
             'title',
+            'description',
             'document_type',
             'document_type_display',
             'original_filename',
             'file_size_display',
             'file_extension',
+            'file_url',
             'is_sensitive',
             'uploaded_by_client',
             'notification_sent',
@@ -167,6 +170,13 @@ class DocumentMinimalSerializer(serializers.ModelSerializer):
     def get_file_size_display(self, obj):
         """Display file size in MB."""
         return f"{obj.file_size_mb} MB"
+
+    def get_file_url(self, obj):
+        """Get file URL."""
+        request = self.context.get('request')
+        if request and obj.file:
+            return request.build_absolute_uri(obj.file.url)
+        return None
 
 
 class DocumentAccessTokenSerializer(serializers.ModelSerializer):
@@ -273,6 +283,7 @@ class DownloadTokenResponseSerializer(serializers.Serializer):
     download_token = serializers.CharField()
     document_id = serializers.IntegerField()
     document_title = serializers.CharField()
+    original_filename = serializers.CharField()
     expires_at = serializers.DateTimeField()
     download_url = serializers.CharField()
 
