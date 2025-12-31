@@ -38,9 +38,9 @@ function DocumentVerify() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Download state
-  const [downloadData, setDownloadData] = useState(null)
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [downloadSuccess, setDownloadSuccess] = useState(false)
+  const [documents, setDocuments] = useState([]) // Array of documents
+  const [downloadingTokens, setDownloadingTokens] = useState(new Set()) // Track which are being downloaded
+  const [downloadedTokens, setDownloadedTokens] = useState(new Set()) // Track which have been downloaded
 
   // Auto-fill email if user is logged in
   useEffect(() => {
@@ -94,8 +94,14 @@ function DocumentVerify() {
       const response = await documentsAPI.validateCode(formData)
       console.log('Respuesta recibida:', response.data)
 
-      // Store download data
-      setDownloadData(response.data)
+      // Store documents list
+      if (response.data.documents && response.data.documents.length > 0) {
+        setDocuments(response.data.documents)
+      } else {
+        setErrors({
+          general: 'No se encontraron documentos disponibles con este código.',
+        })
+      }
     } catch (error) {
       console.error('Error validando código:', error)
       console.error('Detalles del error:', error.response?.data)
@@ -133,26 +139,34 @@ function DocumentVerify() {
     }
   }
 
-  const handleDownload = async () => {
-    if (!downloadData?.download_token) return
+  const handleDownload = async (document) => {
+    if (!document?.download_token) return
 
     try {
-      setIsDownloading(true)
+      // Mark as downloading
+      setDownloadingTokens((prev) => new Set([...prev, document.download_token]))
 
-      const response = await documentsAPI.download(downloadData.download_token)
+      const response = await documentsAPI.download(document.download_token)
 
-      // Create blob and download
-      const blob = new Blob([response.data])
+      // Get content type from response headers or default to PDF
+      const contentType = response.headers['content-type'] || 'application/pdf'
+
+      // Create blob with correct MIME type
+      const blob = new Blob([response.data], { type: contentType })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = downloadData.document_title || 'documento.pdf'
+
+      // Use original filename to preserve extension
+      link.download = document.original_filename || document.document_title || 'documento.pdf'
+
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
 
-      setDownloadSuccess(true)
+      // Mark as downloaded
+      setDownloadedTokens((prev) => new Set([...prev, document.download_token]))
     } catch (error) {
       console.error('Error downloading document:', error)
 
@@ -171,7 +185,12 @@ function DocumentVerify() {
         })
       }
     } finally {
-      setIsDownloading(false)
+      // Remove from downloading set
+      setDownloadingTokens((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(document.download_token)
+        return newSet
+      })
     }
   }
 
@@ -212,7 +231,7 @@ function DocumentVerify() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-        {!downloadData && !downloadSuccess && (
+        {documents.length === 0 && (
           <Card>
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
@@ -357,7 +376,7 @@ function DocumentVerify() {
           </Card>
         )}
 
-        {downloadData && !downloadSuccess && (
+        {documents.length > 0 && (
           <Card>
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
@@ -367,7 +386,7 @@ function DocumentVerify() {
                 Código Verificado
               </h2>
               <p className="text-gray-600 dark:text-gray-400">
-                Tu documento está listo para descargar
+                {documents.length} documento{documents.length > 1 ? 's' : ''} disponible{documents.length > 1 ? 's' : ''} para descargar
               </p>
             </div>
 
@@ -380,76 +399,77 @@ function DocumentVerify() {
               </div>
             )}
 
-            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
-              <div className="flex items-start gap-4">
-                <DocumentTextIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                    {downloadData.document_title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Documento ID: {downloadData.document_id}
-                  </p>
-                </div>
-              </div>
-            </div>
-
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Importante:</strong> Este enlace de descarga expira el{' '}
-                {formatExpiresAt(downloadData.expires_at)}. El documento solo
-                puede descargarse una vez.
+                <strong>Importante:</strong> Los enlaces de descarga expiran en 1 hora. Cada documento solo puede descargarse una vez.
               </p>
             </div>
 
-            <Button
-              variant="primary"
-              className="w-full"
-              size="lg"
-              onClick={handleDownload}
-              isLoading={isDownloading}
-              disabled={isDownloading}
-              leftIcon={<ArrowDownTrayIcon className="h-5 w-5" />}
-            >
-              {isDownloading ? 'Descargando...' : 'Descargar Documento'}
-            </Button>
-          </Card>
-        )}
+            {/* Documents List */}
+            <div className="space-y-4">
+              {documents.map((doc, index) => {
+                const isDownloading = downloadingTokens.has(doc.download_token)
+                const isDownloaded = downloadedTokens.has(doc.download_token)
 
-        {downloadSuccess && (
-          <Card>
-            <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full mb-6">
-                <CheckCircleIcon className="h-12 w-12 text-green-600 dark:text-green-400" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                ¡Descarga Exitosa!
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">
-                Tu documento se ha descargado correctamente
-              </p>
+                return (
+                  <div
+                    key={doc.download_token}
+                    className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                  >
+                    <div className="flex items-start gap-4">
+                      <DocumentTextIcon className="h-10 w-10 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
+                          {doc.document_title}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          {doc.original_filename}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500">
+                          Expira: {formatExpiresAt(doc.expires_at)}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {isDownloaded ? (
+                          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                            <CheckCircleIcon className="h-5 w-5" />
+                            <span className="text-sm font-medium">Descargado</span>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handleDownload(doc)}
+                            isLoading={isDownloading}
+                            disabled={isDownloading}
+                            leftIcon={<ArrowDownTrayIcon className="h-4 w-4" />}
+                          >
+                            {isDownloading ? 'Descargando...' : 'Descargar'}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
 
-              <div className="space-y-3">
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    setDownloadSuccess(false)
-                    setDownloadData(null)
-                    setFormData({ access_code: '', email: '' })
-                    setErrors({})
-                  }}
-                  className="w-full sm:w-auto"
-                >
-                  Verificar Otro Código
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate('/')}
-                  className="w-full sm:w-auto"
-                >
-                  Volver al Inicio
-                </Button>
-              </div>
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-center gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setDocuments([])
+                  setDownloadedTokens(new Set())
+                  setDownloadingTokens(new Set())
+                  setFormData({ access_code: '', email: '' })
+                  setErrors({})
+                }}
+              >
+                Verificar Otro Código
+              </Button>
+              <Button variant="ghost" onClick={() => navigate('/')}>
+                Volver al Inicio
+              </Button>
             </div>
           </Card>
         )}

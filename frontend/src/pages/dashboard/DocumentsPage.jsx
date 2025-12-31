@@ -924,11 +924,16 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
               <h4 className="font-medium text-green-900 dark:text-green-200 mb-2">
                 Notificación enviada exitosamente
               </h4>
-              <p className="text-sm text-green-800 dark:text-green-300">
+              <p className="text-sm text-green-800 dark:text-green-300 mb-1">
                 {notificationResult?.email_sent
                   ? '✓ Email enviado al cliente'
                   : '⚠ Email no pudo enviarse (revisa configuración SMTP)'}
               </p>
+              {notificationResult?.documents_count > 0 && (
+                <p className="text-xs text-green-700 dark:text-green-400 mt-2">
+                  📄 Se notificaron {notificationResult.documents_count} documento{notificationResult.documents_count > 1 ? 's' : ''} del mismo caso con este código
+                </p>
+              )}
             </div>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-lg p-6 text-center">
@@ -960,23 +965,36 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
 
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
               <h4 className="font-medium text-yellow-900 dark:text-yellow-200 mb-2 text-sm">
-                Para Testing / Desarrollo
+                📝 Para Testing / Desarrollo
               </h4>
               <p className="text-xs text-yellow-800 dark:text-yellow-300 mb-2">
                 Puedes usar este código para probar el flujo de verificación:
               </p>
               <ol className="text-xs text-yellow-800 dark:text-yellow-300 space-y-1 ml-4">
-                <li>1. Copia el código de arriba</li>
-                <li>2. Abre una ventana de incógnito o cierra sesión</li>
+                <li>1. Copia el código de arriba (📋)</li>
+                <li>2. Abre ventana de incógnito o cierra sesión</li>
                 <li>
-                  3. Ve a{' '}
-                  <code className="bg-yellow-100 dark:bg-yellow-900 px-1 py-0.5 rounded">
+                  3. ⚠️ <strong>IMPORTANTE:</strong> Ve a{' '}
+                  <code className="bg-yellow-100 dark:bg-yellow-900 px-1 py-0.5 rounded font-bold">
                     /documents/verify
-                  </code>
+                  </code>{' '}
+                  (ruta PÚBLICA, NO /portal/documents/verify)
                 </li>
-                <li>4. Ingresa el código y el email del cliente</li>
-                <li>5. Descarga el documento</li>
+                <li>4. Ingresa el código + email del cliente</li>
+                <li>5. Verás {notificationResult?.documents_count || 1} documento{(notificationResult?.documents_count || 1) > 1 ? 's' : ''} - descarga los que necesites ✅</li>
               </ol>
+              <div className="mt-3 pt-3 border-t border-yellow-300 dark:border-yellow-700">
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/documents/verify`
+                    navigator.clipboard.writeText(url)
+                    alert('URL copiada: ' + url)
+                  }}
+                  className="text-xs text-yellow-900 dark:text-yellow-100 underline hover:no-underline"
+                >
+                  📋 Copiar URL de verificación pública
+                </button>
+              </div>
             </div>
 
             {notificationResult?.whatsapp_link && (
