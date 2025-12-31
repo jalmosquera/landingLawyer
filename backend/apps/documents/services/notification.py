@@ -4,6 +4,7 @@ Document notification service for email and WhatsApp.
 Handles sending access codes to clients via email and generating WhatsApp links.
 """
 
+from datetime import timedelta
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags

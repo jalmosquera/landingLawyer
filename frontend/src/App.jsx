@@ -35,7 +35,6 @@ import LandingAdminPage from './pages/dashboard/LandingAdminPage';
 import PortalDashboard from './pages/portal/PortalDashboard';
 import PortalCasesPage from './pages/portal/PortalCasesPage';
 import PortalDocumentsPage from './pages/portal/PortalDocumentsPage';
-import DocumentVerifyPage from './pages/portal/DocumentVerifyPage';
 import PortalAppointmentsPage from './pages/portal/PortalAppointmentsPage';
 
 function App() {
@@ -89,7 +88,6 @@ function App() {
                     <Route path="dashboard" element={<PortalDashboard />} />
                     <Route path="cases" element={<PortalCasesPage />} />
                     <Route path="documents" element={<PortalDocumentsPage />} />
-                    <Route path="documents/verify" element={<DocumentVerifyPage />} />
                     <Route path="appointments" element={<PortalAppointmentsPage />} />
                   </Routes>
                 </PortalLayout>
