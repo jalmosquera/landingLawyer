@@ -139,14 +139,14 @@ function DocumentVerify() {
     }
   }
 
-  const handleDownload = async (document) => {
-    if (!document?.download_token) return
+  const handleDownload = async (doc) => {
+    if (!doc?.download_token) return
 
     try {
       // Mark as downloading
-      setDownloadingTokens((prev) => new Set([...prev, document.download_token]))
+      setDownloadingTokens((prev) => new Set([...prev, doc.download_token]))
 
-      const response = await documentsAPI.download(document.download_token)
+      const response = await documentsAPI.download(doc.download_token)
 
       // Get content type from response headers or default to PDF
       const contentType = response.headers['content-type'] || 'application/pdf'
@@ -158,7 +158,7 @@ function DocumentVerify() {
       link.href = url
 
       // Use original filename to preserve extension
-      link.download = document.original_filename || document.document_title || 'documento.pdf'
+      link.download = doc.original_filename || doc.document_title || 'documento.pdf'
 
       document.body.appendChild(link)
       link.click()
@@ -166,7 +166,7 @@ function DocumentVerify() {
       window.URL.revokeObjectURL(url)
 
       // Mark as downloaded
-      setDownloadedTokens((prev) => new Set([...prev, document.download_token]))
+      setDownloadedTokens((prev) => new Set([...prev, doc.download_token]))
     } catch (error) {
       console.error('Error downloading document:', error)
 
@@ -188,7 +188,7 @@ function DocumentVerify() {
       // Remove from downloading set
       setDownloadingTokens((prev) => {
         const newSet = new Set(prev)
-        newSet.delete(document.download_token)
+        newSet.delete(doc.download_token)
         return newSet
       })
     }

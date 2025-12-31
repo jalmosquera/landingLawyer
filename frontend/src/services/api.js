@@ -52,14 +52,29 @@ api.interceptors.response.use(
 
           return api(originalRequest);
         } catch (refreshError) {
-          // Refresh failed - logout user
+          // Refresh failed - logout user and redirect
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           localStorage.removeItem('user');
           window.location.href = '/login';
           return Promise.reject(refreshError);
         }
+      } else {
+        // No refresh token available - logout and redirect
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return Promise.reject(error);
       }
+    }
+
+    // If 401 and already retried, logout (refresh failed)
+    if (error.response?.status === 401 && originalRequest._retry) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
 
     return Promise.reject(error);
