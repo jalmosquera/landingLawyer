@@ -23,6 +23,7 @@ import {
   LoadingSpinner,
   EmptyState,
   Badge,
+  RichTextEditor,
 } from '../../components/ui'
 import { documentsAPI, casesAPI, clientsAPI } from '../../services/api'
 
@@ -31,7 +32,7 @@ function DocumentsPage() {
   const [cases, setCases] = useState([])
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedCase, setSelectedCase] = useState('all')
+  const [selectedClient, setSelectedClient] = useState('all')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false)
   const [isLogModalOpen, setIsLogModalOpen] = useState(false)
@@ -50,7 +51,7 @@ function DocumentsPage() {
     description: '',
     document_type: 'contract',
     is_sensitive: false,
-    file: null,
+    files: [],
   })
   const [uploadErrors, setUploadErrors] = useState({})
   const [isUploading, setIsUploading] = useState(false)
@@ -58,6 +59,8 @@ function DocumentsPage() {
   // Notify form state
   const [notifyMessage, setNotifyMessage] = useState('')
   const [isNotifying, setIsNotifying] = useState(false)
+  const [notificationResult, setNotificationResult] = useState(null)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -125,7 +128,7 @@ function DocumentsPage() {
       description: '',
       document_type: 'contract',
       is_sensitive: false,
-      file: null,
+      files: [],
     })
     setUploadErrors({})
     setClientSearchTerm('')
@@ -142,7 +145,7 @@ function DocumentsPage() {
       description: '',
       document_type: 'contract',
       is_sensitive: false,
-      file: null,
+      files: [],
     })
     setUploadErrors({})
     setClientSearchTerm('')
@@ -152,7 +155,7 @@ function DocumentsPage() {
   const handleUploadChange = (e) => {
     const { name, value, type, checked, files } = e.target
     if (type === 'file') {
-      setUploadData((prev) => ({ ...prev, file: files[0] }))
+      setUploadData((prev) => ({ ...prev, files: Array.from(files) }))
     } else if (type === 'checkbox') {
       setUploadData((prev) => ({ ...prev, [name]: checked }))
     } else {
@@ -174,8 +177,8 @@ function DocumentsPage() {
     if (!uploadData.title.trim()) {
       errors.title = 'El título es requerido'
     }
-    if (!uploadData.file) {
-      errors.file = 'Debe seleccionar un archivo'
+    if (!uploadData.files || uploadData.files.length === 0) {
+      errors.file = 'Debe seleccionar al menos un archivo'
     }
     return errors
   }
@@ -227,19 +230,29 @@ function DocumentsPage() {
 
     try {
       setIsUploading(true)
-      const formData = new FormData()
-      formData.append('case', uploadData.case)
-      formData.append('title', uploadData.title)
-      formData.append('description', uploadData.description)
-      formData.append('document_type', uploadData.document_type)
-      formData.append('is_sensitive', uploadData.is_sensitive)
-      formData.append('file', uploadData.file)
 
-      await documentsAPI.create(formData)
+      // Upload each file separately
+      const uploadPromises = uploadData.files.map((file, index) => {
+        const formData = new FormData()
+        formData.append('case', uploadData.case)
+        // If multiple files, append index to title
+        const title = uploadData.files.length > 1
+          ? `${uploadData.title} (${index + 1}/${uploadData.files.length})`
+          : uploadData.title
+        formData.append('title', title)
+        formData.append('description', uploadData.description)
+        formData.append('document_type', uploadData.document_type)
+        formData.append('is_sensitive', uploadData.is_sensitive)
+        formData.append('file', file)
+
+        return documentsAPI.create(formData)
+      })
+
+      await Promise.all(uploadPromises)
       await fetchData()
       handleCloseUploadModal()
     } catch (error) {
-      console.error('Error uploading document:', error)
+      console.error('Error uploading documents:', error)
       setUploadErrors({
         general:
           error.response?.data?.message ||
@@ -259,34 +272,43 @@ function DocumentsPage() {
   const handleSendNotification = async () => {
     try {
       setIsNotifying(true)
-      await documentsAPI.notifyClient(selectedDocument.id, {
+      const response = await documentsAPI.notifyClient(selectedDocument.id, {
         message: notifyMessage,
       })
 
-      // Open WhatsApp in new tab
+      // Store notification result
+      const result = response.data
+      setNotificationResult(result)
+
+      // Open WhatsApp in new tab with actual code
       const caseData = cases.find((c) => c.id === selectedDocument.case)
-      const clientPhone = caseData?.client?.phone
-      if (clientPhone) {
+      const clientData = caseData?.client_data
+      const clientPhone = clientData?.phone
+
+      if (clientPhone && result.access_code) {
+        const expiresDate = new Date(result.expires_at)
         const whatsappMessage = encodeURIComponent(
-          `Hola ${caseData.client.full_name}, tienes un nuevo documento disponible para el caso ${caseData.case_number || caseData.title}.
+          `Hola ${clientData.full_name}, tienes un nuevo documento disponible para el caso ${caseData.case_number || caseData.title}.
 
 📄 Documento: ${selectedDocument.title}
 
-Código de acceso: [Se enviará por email]
+🔑 Código de acceso: ${result.access_code}
 
-Válido hasta: 24 horas
+🔗 Ingresa en: ${window.location.origin}/documents/verify
+
+⏰ Válido hasta: ${expiresDate.toLocaleString('es-ES')}
 
 ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
         )
         window.open(
-          `https://wa.me/${clientPhone}?text=${whatsappMessage}`,
+          `https://wa.me/${clientPhone.replace(/\D/g, '')}?text=${whatsappMessage}`,
           '_blank'
         )
       }
 
       await fetchData()
       setIsNotifyModalOpen(false)
-      setSelectedDocument(null)
+      setIsSuccessModalOpen(true)
     } catch (error) {
       console.error('Error sending notification:', error)
       alert('Error al enviar la notificación. Intenta nuevamente.')
@@ -299,7 +321,8 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
     setSelectedDocument(document)
     try {
       const response = await documentsAPI.getAccessLog(document.id)
-      setAccessLogs(response.data.results || response.data)
+      // Backend returns {document: {...}, logs: [...], total_logs: N}
+      setAccessLogs(response.data.logs || [])
       setIsLogModalOpen(true)
     } catch (error) {
       console.error('Error fetching access log:', error)
@@ -324,8 +347,8 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
   }
 
   const filteredDocuments = documents.filter((doc) => {
-    if (selectedCase === 'all') return true
-    return doc.case === parseInt(selectedCase)
+    if (selectedClient === 'all') return true
+    return doc.case_data?.client === parseInt(selectedClient)
   })
 
   if (loading) {
@@ -353,14 +376,14 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="w-full sm:w-80">
             <select
-              value={selectedCase}
-              onChange={(e) => setSelectedCase(e.target.value)}
+              value={selectedClient}
+              onChange={(e) => setSelectedClient(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
             >
-              <option value="all">Todos los casos</option>
-              {cases.map((caseItem) => (
-                <option key={caseItem.id} value={caseItem.id}>
-                  {caseItem.case_number || caseItem.title}
+              <option value="all">Todos los clientes</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.full_name}
                 </option>
               ))}
             </select>
@@ -382,104 +405,117 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
             icon={DocumentTextIcon}
             title="No hay documentos"
             description={
-              selectedCase !== 'all'
-                ? 'No se encontraron documentos para este caso'
+              selectedClient !== 'all'
+                ? 'No se encontraron documentos para este cliente'
                 : 'Sube tu primer documento para comenzar'
             }
-            actionLabel={selectedCase === 'all' ? 'Subir Documento' : undefined}
-            onAction={selectedCase === 'all' ? handleOpenUploadModal : undefined}
+            actionLabel={selectedClient === 'all' ? 'Subir Documento' : undefined}
+            onAction={selectedClient === 'all' ? handleOpenUploadModal : undefined}
           />
         </Card>
       ) : (
         <Card padding={false}>
-          <Table>
-            <Table.Header>
-              <tr>
-                <Table.HeaderCell>Documento</Table.HeaderCell>
-                <Table.HeaderCell>Caso</Table.HeaderCell>
-                <Table.HeaderCell>Tipo</Table.HeaderCell>
-                <Table.HeaderCell>Tamaño</Table.HeaderCell>
-                <Table.HeaderCell>Fecha</Table.HeaderCell>
-                <Table.HeaderCell>Estado</Table.HeaderCell>
-                <Table.HeaderCell>Acciones</Table.HeaderCell>
-              </tr>
-            </Table.Header>
-            <Table.Body>
-              {filteredDocuments.map((doc) => (
-                <Table.Row key={doc.id}>
-                  <Table.Cell>
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {doc.title}
-                      </div>
-                      {doc.description && (
-                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
-                          {doc.description}
+          <div className="overflow-x-auto">
+            <Table>
+              <Table.Header>
+                <tr>
+                  <Table.HeaderCell className="w-[25%]">Documento</Table.HeaderCell>
+                  <Table.HeaderCell className="w-[20%]">Caso</Table.HeaderCell>
+                  <Table.HeaderCell className="w-[10%]">Tipo</Table.HeaderCell>
+                  <Table.HeaderCell className="w-[8%]">Tamaño</Table.HeaderCell>
+                  <Table.HeaderCell className="w-[12%]">Fecha</Table.HeaderCell>
+                  <Table.HeaderCell className="w-[12%]">Estado</Table.HeaderCell>
+                  <Table.HeaderCell className="w-[13%]">Acciones</Table.HeaderCell>
+                </tr>
+              </Table.Header>
+              <Table.Body>
+                {filteredDocuments.map((doc) => (
+                  <Table.Row key={doc.id}>
+                    <Table.Cell className="w-[25%]">
+                      <div className="max-w-[300px]">
+                        <div className="font-medium text-gray-900 dark:text-white truncate">
+                          {doc.title}
                         </div>
-                      )}
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    {doc.case_data?.case_number || doc.case_data?.title || '-'}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge variant="default" size="sm">
-                      {getDocumentTypeLabel(doc.document_type)}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell>
-                    {doc.file_size ? formatFileSize(doc.file_size) : '-'}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className="text-sm">{formatDate(doc.uploaded_at)}</div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    {doc.notification_sent ? (
-                      <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                        <CheckCircleIcon className="h-5 w-5" />
-                        <span className="text-sm">Notificado</span>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {doc.case_data?.client_data?.full_name || '-'}
+                        </div>
                       </div>
-                    ) : doc.is_sensitive ? (
-                      <Badge variant="warning" size="sm">
-                        Pendiente
-                      </Badge>
-                    ) : (
-                      <Badge variant="default" size="sm">
-                        Público
-                      </Badge>
-                    )}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className="flex items-center gap-2">
-                      {!doc.notification_sent && doc.is_sensitive && (
-                        <button
-                          onClick={() => handleNotifyClient(doc)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded dark:text-blue-400 dark:hover:bg-gray-700"
-                          title="Avisar al cliente"
-                        >
-                          <BellIcon className="h-5 w-5" />
-                        </button>
+                    </Table.Cell>
+                    <Table.Cell className="w-[20%]">
+                      {doc.case_data ? (
+                        <div className="max-w-[200px]">
+                          <div className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                            {doc.case_data.case_number}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {doc.case_data.title}
+                          </div>
+                        </div>
+                      ) : (
+                        '-'
                       )}
-                      <button
-                        onClick={() => handleViewAccessLog(doc)}
-                        className="p-1 text-gray-600 hover:bg-gray-50 rounded dark:text-gray-400 dark:hover:bg-gray-700"
-                        title="Ver log de accesos"
-                      >
-                        <EyeIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteDocument(doc.id)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded dark:text-red-400 dark:hover:bg-gray-700"
-                        title="Eliminar"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
+                    </Table.Cell>
+                    <Table.Cell className="w-[10%]">
+                      <Badge variant="default" size="sm">
+                        {getDocumentTypeLabel(doc.document_type)}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell className="w-[8%]">
+                      <span className="text-sm whitespace-nowrap">
+                        {doc.file_size ? formatFileSize(doc.file_size) : '-'}
+                      </span>
+                    </Table.Cell>
+                    <Table.Cell className="w-[12%]">
+                      <div className="text-xs whitespace-nowrap">{formatDate(doc.uploaded_at)}</div>
+                    </Table.Cell>
+                    <Table.Cell className="w-[12%]">
+                      {doc.notification_sent ? (
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <CheckCircleIcon className="h-4 w-4" />
+                          <span className="text-xs whitespace-nowrap">Notificado</span>
+                        </div>
+                      ) : doc.is_sensitive ? (
+                        <Badge variant="warning" size="sm">
+                          Pendiente
+                        </Badge>
+                      ) : (
+                        <Badge variant="default" size="sm">
+                          Público
+                        </Badge>
+                      )}
+                    </Table.Cell>
+                    <Table.Cell className="w-[13%]">
+                      <div className="flex items-center gap-1">
+                        {!doc.notification_sent && doc.is_sensitive && (
+                          <button
+                            onClick={() => handleNotifyClient(doc)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded dark:text-blue-400 dark:hover:bg-gray-700"
+                            title="Avisar al cliente"
+                          >
+                            <BellIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleViewAccessLog(doc)}
+                          className="p-1.5 text-gray-600 hover:bg-gray-50 rounded dark:text-gray-400 dark:hover:bg-gray-700"
+                          title="Ver log de accesos"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDocument(doc.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded dark:text-red-400 dark:hover:bg-gray-700"
+                          title="Eliminar"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          </div>
         </Card>
       )}
 
@@ -623,12 +659,11 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Descripción
                 </label>
-                <textarea
-                  name="description"
+                <RichTextEditor
                   value={uploadData.description}
-                  onChange={handleUploadChange}
-                  rows="2"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
+                  onChange={(content) => {
+                    setUploadData((prev) => ({ ...prev, description: content }))
+                  }}
                   placeholder="Descripción opcional del documento..."
                 />
               </div>
@@ -675,11 +710,12 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
               {/* File Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Archivo *
+                  Archivos *
                 </label>
                 <input
                   type="file"
                   name="file"
+                  multiple
                   onChange={handleUploadChange}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
                     uploadErrors.file
@@ -690,8 +726,13 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
                 {uploadErrors.file && (
                   <p className="text-red-500 text-sm mt-1">{uploadErrors.file}</p>
                 )}
+                {uploadData.files.length > 0 && (
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                    ✓ {uploadData.files.length} archivo(s) seleccionado(s)
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Tamaño máximo: 20MB
+                  Tamaño máximo por archivo: 20MB. Puedes seleccionar múltiples archivos.
                 </p>
               </div>
             </div>
@@ -711,7 +752,7 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
               disabled={isUploading}
               leftIcon={<DocumentArrowUpIcon className="h-5 w-5" />}
             >
-              Subir Documento
+              {isUploading ? 'Subiendo...' : uploadData.files.length > 1 ? `Subir ${uploadData.files.length} Documentos` : 'Subir Documento'}
             </Button>
           </Modal.Footer>
         </form>
@@ -744,7 +785,10 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
               </p>
               <p className="text-sm text-gray-700 dark:text-gray-300">
                 <strong>Caso:</strong>{' '}
-                {cases.find((c) => c.id === selectedDocument?.case)?.title || '-'}
+                {(() => {
+                  const caseData = selectedDocument?.case_data || cases.find((c) => c.id === selectedDocument?.case)
+                  return caseData ? `${caseData.case_number} - ${caseData.title}` : '-'
+                })()}
               </p>
             </div>
 
@@ -789,9 +833,16 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
         size="xl"
       >
         <Modal.Body>
-          <div className="mb-4">
+          <div className="mb-4 space-y-2">
             <p className="text-sm text-gray-700 dark:text-gray-300">
               <strong>Documento:</strong> {selectedDocument?.title}
+            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Caso:</strong>{' '}
+              {(() => {
+                const caseData = selectedDocument?.case_data || cases.find((c) => c.id === selectedDocument?.case)
+                return caseData ? `${caseData.case_number} - ${caseData.title}` : '-'
+              })()}
             </p>
           </div>
 
@@ -851,6 +902,105 @@ ${notifyMessage ? `\nNota: ${notifyMessage}` : ''}`
         </Modal.Body>
         <Modal.Footer>
           <Button variant="ghost" onClick={() => setIsLogModalOpen(false)}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Success Modal - Show access code */}
+      <Modal
+        isOpen={isSuccessModalOpen}
+        onClose={() => {
+          setIsSuccessModalOpen(false)
+          setNotificationResult(null)
+          setSelectedDocument(null)
+        }}
+        title="✅ Notificación Enviada"
+        size="lg"
+      >
+        <Modal.Body>
+          <div className="space-y-4">
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <h4 className="font-medium text-green-900 dark:text-green-200 mb-2">
+                Notificación enviada exitosamente
+              </h4>
+              <p className="text-sm text-green-800 dark:text-green-300">
+                {notificationResult?.email_sent
+                  ? '✓ Email enviado al cliente'
+                  : '⚠ Email no pudo enviarse (revisa configuración SMTP)'}
+              </p>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-lg p-6 text-center">
+              <p className="text-sm text-blue-800 dark:text-blue-300 mb-2">
+                Código de Acceso
+              </p>
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <div className="text-4xl font-bold text-blue-900 dark:text-blue-100 font-mono tracking-widest">
+                  {notificationResult?.access_code || '------'}
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(notificationResult?.access_code || '')
+                    alert('Código copiado al portapapeles')
+                  }}
+                  className="p-2 text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded"
+                  title="Copiar código"
+                >
+                  📋
+                </button>
+              </div>
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                Válido hasta:{' '}
+                {notificationResult?.expires_at
+                  ? new Date(notificationResult.expires_at).toLocaleString('es-ES')
+                  : '-'}
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+              <h4 className="font-medium text-yellow-900 dark:text-yellow-200 mb-2 text-sm">
+                Para Testing / Desarrollo
+              </h4>
+              <p className="text-xs text-yellow-800 dark:text-yellow-300 mb-2">
+                Puedes usar este código para probar el flujo de verificación:
+              </p>
+              <ol className="text-xs text-yellow-800 dark:text-yellow-300 space-y-1 ml-4">
+                <li>1. Copia el código de arriba</li>
+                <li>2. Abre una ventana de incógnito o cierra sesión</li>
+                <li>
+                  3. Ve a{' '}
+                  <code className="bg-yellow-100 dark:bg-yellow-900 px-1 py-0.5 rounded">
+                    /documents/verify
+                  </code>
+                </li>
+                <li>4. Ingresa el código y el email del cliente</li>
+                <li>5. Descarga el documento</li>
+              </ol>
+            </div>
+
+            {notificationResult?.whatsapp_link && (
+              <div>
+                <Button
+                  variant="primary"
+                  onClick={() => window.open(notificationResult.whatsapp_link, '_blank')}
+                  className="w-full"
+                >
+                  Abrir WhatsApp con mensaje
+                </Button>
+              </div>
+            )}
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setIsSuccessModalOpen(false)
+              setNotificationResult(null)
+              setSelectedDocument(null)
+            }}
+          >
             Cerrar
           </Button>
         </Modal.Footer>
