@@ -179,62 +179,59 @@ function PortalCasesPage() {
               <Card key={caseItem.id} className="overflow-hidden">
                 {/* Case Header */}
                 <div
-                  className="p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   onClick={() => toggleCaseExpanded(caseItem.id)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <BriefcaseIcon className="h-6 w-6 text-accent" />
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <BriefcaseIcon className="h-5 w-5 text-accent flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                           {caseItem.title}
                         </h3>
-                      </div>
-                      {caseItem.case_number && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                          No. {caseItem.case_number}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        <Badge variant={getCaseStatusColor(caseItem.status)}>
-                          {getStatusLabel(caseItem.status)}
-                        </Badge>
-                        <Badge variant="default">
-                          {getCaseTypeLabel(caseItem.case_type)}
-                        </Badge>
-                        <Badge variant={getPriorityColor(caseItem.priority)}>
-                          Prioridad: {getPriorityLabel(caseItem.priority)}
-                        </Badge>
+                        {caseItem.case_number && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            No. {caseItem.case_number}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <button className="ml-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      {isExpanded ? (
-                        <ChevronUpIcon className="h-5 w-5" />
-                      ) : (
-                        <ChevronDownIcon className="h-5 w-5" />
-                      )}
-                    </button>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Badge variant="default" size="sm">
+                        {getCaseTypeLabel(caseItem.case_type)}
+                      </Badge>
+                      <Badge variant={getPriorityColor(caseItem.priority)} size="sm">
+                        Prioridad: {getPriorityLabel(caseItem.priority)}
+                      </Badge>
+                      <button className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        {isExpanded ? (
+                          <ChevronUpIcon className="h-5 w-5" />
+                        ) : (
+                          <ChevronDownIcon className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 {/* Case Details (Expanded) */}
                 {isExpanded && (
                   <div className="border-t border-gray-200 dark:border-gray-700">
-                    <div className="p-6 bg-gray-50 dark:bg-gray-800">
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800">
                       {/* Description */}
                       {caseItem.description && (
-                        <div className="mb-6">
-                          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <div className="mb-4">
+                          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Descripción
                           </h4>
-                          <p className="text-gray-600 dark:text-gray-400">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             {caseItem.description}
                           </p>
                         </div>
                       )}
 
                       {/* Dates */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Fecha de apertura
