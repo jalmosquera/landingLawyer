@@ -34,6 +34,7 @@ function AppointmentsPage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('all')
+  const [clientFilter, setClientFilter] = useState('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -288,6 +289,9 @@ function AppointmentsPage() {
     const matchesStatus =
       statusFilter === 'all' || apt.status === statusFilter
 
+    const matchesClient =
+      clientFilter === 'all' || apt.client === parseInt(clientFilter)
+
     let matchesDate = true
     if (dateFilter !== 'all') {
       const now = new Date()
@@ -307,7 +311,7 @@ function AppointmentsPage() {
       }
     }
 
-    return matchesStatus && matchesDate
+    return matchesStatus && matchesDate && matchesClient
   })
 
   // Sort by start time
@@ -339,6 +343,18 @@ function AppointmentsPage() {
       <Card className="mb-6">
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
           <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            <select
+              value={clientFilter}
+              onChange={(e) => setClientFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
+            >
+              <option value="all">Todos los clientes</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.full_name}
+                </option>
+              ))}
+            </select>
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
@@ -378,17 +394,17 @@ function AppointmentsPage() {
             icon={CalendarIcon}
             title="No hay citas"
             description={
-              dateFilter !== 'all' || statusFilter !== 'all'
+              dateFilter !== 'all' || statusFilter !== 'all' || clientFilter !== 'all'
                 ? 'No se encontraron citas con los filtros seleccionados'
                 : 'Agenda tu primera cita para comenzar'
             }
             actionLabel={
-              dateFilter === 'all' && statusFilter === 'all'
+              dateFilter === 'all' && statusFilter === 'all' && clientFilter === 'all'
                 ? 'Agendar Cita'
                 : undefined
             }
             onAction={
-              dateFilter === 'all' && statusFilter === 'all'
+              dateFilter === 'all' && statusFilter === 'all' && clientFilter === 'all'
                 ? () => handleOpenModal()
                 : undefined
             }
@@ -498,9 +514,18 @@ function AppointmentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Client */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Cliente *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Cliente *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => window.open('/dashboard/clients', '_blank')}
+                    className="text-xs text-primary hover:text-primary-dark dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    + Crear Cliente
+                  </button>
+                </div>
                 <select
                   name="client"
                   value={formData.client}
