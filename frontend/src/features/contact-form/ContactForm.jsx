@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { landingAPI } from '../../services/api'
 
 function ContactForm() {
   const [formData, setFormData] = useState({
@@ -9,6 +10,8 @@ function ContactForm() {
   })
 
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -49,15 +52,31 @@ function ContactForm() {
     return newErrors
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validateForm()
 
     if (Object.keys(newErrors).length === 0) {
-      // Form is valid - In production, send to backend
-      console.log('Form submitted:', formData)
-      alert('¡Gracias! Nos pondremos en contacto con usted pronto.')
-      setFormData({ name: '', email: '', phone: '', message: '' })
+      setIsSubmitting(true)
+      setErrors({})
+
+      try {
+        await landingAPI.public.contactRequest(formData)
+        setSubmitSuccess(true)
+        setFormData({ name: '', email: '', phone: '', message: '' })
+
+        // Reset success message after 5 seconds
+        setTimeout(() => {
+          setSubmitSuccess(false)
+        }, 5000)
+      } catch (error) {
+        console.error('Error submitting contact form:', error)
+        setErrors({
+          submit: error.response?.data?.message || 'Hubo un error al enviar el mensaje. Por favor, inténtelo de nuevo.'
+        })
+      } finally {
+        setIsSubmitting(false)
+      }
     } else {
       setErrors(newErrors)
     }
@@ -81,6 +100,21 @@ function ContactForm() {
             onSubmit={handleSubmit}
             className="bg-white text-gray-800 rounded-xl shadow-2xl p-8"
           >
+            {/* Success Message */}
+            {submitSuccess && (
+              <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                <p className="font-semibold">¡Mensaje enviado con éxito!</p>
+                <p className="text-sm">Nos pondremos en contacto con usted pronto.</p>
+              </div>
+            )}
+
+            {/* General Error Message */}
+            {errors.submit && (
+              <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <p className="text-sm">{errors.submit}</p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               {/* Name Field */}
               <div>
@@ -170,9 +204,12 @@ function ContactForm() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full btn-accent text-lg py-4"
+              disabled={isSubmitting}
+              className={`w-full btn-accent text-lg py-4 ${
+                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
             >
-              Enviar Mensaje
+              {isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
             </button>
           </form>
         </div>
