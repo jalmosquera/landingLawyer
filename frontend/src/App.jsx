@@ -29,6 +29,7 @@ import ClientsPage from './pages/dashboard/ClientsPage';
 import CasesPage from './pages/dashboard/CasesPage';
 import DocumentsPage from './pages/dashboard/DocumentsPage';
 import AppointmentsPage from './pages/dashboard/AppointmentsPage';
+import AvailabilityPage from './pages/dashboard/AvailabilityPage';
 import LandingAdminPage from './pages/dashboard/LandingAdminPage';
 
 // Portal pages (client)
@@ -68,6 +69,7 @@ function App() {
                     <Route path="cases" element={<CasesPage />} />
                     <Route path="documents" element={<DocumentsPage />} />
                     <Route path="appointments" element={<AppointmentsPage />} />
+                    <Route path="availability" element={<AvailabilityPage />} />
                     <Route path="landing" element={<LandingAdminPage />} />
                   </Routes>
                 </DashboardLayout>

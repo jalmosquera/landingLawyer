@@ -5,7 +5,7 @@ Appointment API serializers.
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from apps.appointments.models import Appointment
+from apps.appointments.models import Appointment, LawyerAvailability
 from apps.clients.api.serializers import ClientMinimalSerializer
 from apps.cases.api.serializers import CaseMinimalSerializer
 
@@ -256,11 +256,6 @@ class PublicAppointmentRequestSerializer(serializers.Serializer):
         required=True,
         help_text='Fecha y hora de fin'
     )
-    appointment_type = serializers.ChoiceField(
-        choices=Appointment._meta.get_field('appointment_type').choices,
-        default='in_person',
-        help_text='Tipo de cita'
-    )
     message = serializers.CharField(
         required=False,
         allow_blank=True,
@@ -271,6 +266,9 @@ class PublicAppointmentRequestSerializer(serializers.Serializer):
         """Validate public appointment request."""
         starts_at = data['starts_at']
         ends_at = data['ends_at']
+
+        # FORCE: All public appointment requests are Microsoft Teams
+        data['appointment_type'] = 'teams'
 
         if ends_at <= starts_at:
             raise serializers.ValidationError(
@@ -305,3 +303,88 @@ class AvailableSlotSerializer(serializers.Serializer):
     end_time = serializers.DateTimeField()
     available = serializers.BooleanField()
     duration_minutes = serializers.IntegerField(read_only=True)
+    lawyer_id = serializers.IntegerField(read_only=True, required=False)
+    lawyer_name = serializers.CharField(read_only=True, required=False)
+
+
+class LawyerAvailabilitySerializer(serializers.ModelSerializer):
+    """
+    Serializer for LawyerAvailability model.
+
+    Used for managing lawyer availability configuration.
+    """
+
+    lawyer_name = serializers.CharField(source='lawyer.get_full_name', read_only=True)
+    day_of_week_display = serializers.CharField(source='get_day_of_week_display', read_only=True)
+
+    class Meta:
+        model = LawyerAvailability
+        fields = [
+            'id',
+            'lawyer',
+            'lawyer_name',
+            'day_of_week',
+            'day_of_week_display',
+            'start_time',
+            'end_time',
+            'is_active',
+            'slot_duration_minutes',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+    def validate(self, data):
+        """Validate availability data."""
+        if 'end_time' in data and 'start_time' in data:
+            if data['end_time'] <= data['start_time']:
+                raise serializers.ValidationError({
+                    'end_time': 'La hora de fin debe ser posterior a la hora de inicio'
+                })
+
+        if 'slot_duration_minutes' in data:
+            if data['slot_duration_minutes'] not in [15, 30, 45, 60, 90, 120]:
+                raise serializers.ValidationError({
+                    'slot_duration_minutes': 'La duración debe ser 15, 30, 45, 60, 90 o 120 minutos'
+                })
+
+        return data
+
+
+class LawyerAvailabilityCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating LawyerAvailability.
+
+    Auto-assigns the current user as the lawyer.
+    """
+
+    class Meta:
+        model = LawyerAvailability
+        fields = [
+            'day_of_week',
+            'start_time',
+            'end_time',
+            'is_active',
+            'slot_duration_minutes',
+        ]
+
+    def create(self, validated_data):
+        """Create availability with current user as lawyer."""
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            validated_data['lawyer'] = request.user
+        return super().create(validated_data)
+
+    def validate(self, data):
+        """Validate availability data."""
+        if data['end_time'] <= data['start_time']:
+            raise serializers.ValidationError({
+                'end_time': 'La hora de fin debe ser posterior a la hora de inicio'
+            })
+
+        if data['slot_duration_minutes'] not in [15, 30, 45, 60, 90, 120]:
+            raise serializers.ValidationError({
+                'slot_duration_minutes': 'La duración debe ser 15, 30, 45, 60, 90 o 120 minutos'
+            })
+
+        return data

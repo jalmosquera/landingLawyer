@@ -13,6 +13,7 @@ import {
   BriefcaseIcon,
   DocumentTextIcon,
   CalendarIcon,
+  ClockIcon,
   GlobeAltIcon,
   Bars3Icon,
   XMarkIcon,
@@ -33,6 +34,7 @@ function DashboardLayout({ children }) {
     { name: 'Casos', href: '/dashboard/cases', icon: BriefcaseIcon },
     { name: 'Documentos', href: '/dashboard/documents', icon: DocumentTextIcon },
     { name: 'Citas', href: '/dashboard/appointments', icon: CalendarIcon },
+    { name: 'Disponibilidad', href: '/dashboard/availability', icon: ClockIcon },
     { name: 'Landing Admin', href: '/dashboard/landing', icon: GlobeAltIcon },
   ]
 

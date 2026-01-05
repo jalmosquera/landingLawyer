@@ -10,6 +10,91 @@ from django.conf import settings
 from django.utils import timezone
 
 
+class LawyerAvailability(models.Model):
+    """
+    Configuración de disponibilidad del abogado por día de semana.
+
+    Permite al abogado definir horarios disponibles para cada día,
+    reemplazando la configuración hardcodeada en settings.
+    """
+
+    DAY_CHOICES = [
+        (0, 'Lunes'),
+        (1, 'Martes'),
+        (2, 'Miércoles'),
+        (3, 'Jueves'),
+        (4, 'Viernes'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+
+    lawyer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='availability_slots',
+        limit_choices_to={'role__in': ['boss', 'employe']},
+        verbose_name='Abogado',
+        help_text='Abogado que configura su disponibilidad'
+    )
+    day_of_week = models.IntegerField(
+        'Día de la semana',
+        choices=DAY_CHOICES,
+        db_index=True,
+        help_text='0=Lunes, 6=Domingo'
+    )
+    start_time = models.TimeField(
+        'Hora de inicio',
+        help_text='Hora de inicio de disponibilidad'
+    )
+    end_time = models.TimeField(
+        'Hora de fin',
+        help_text='Hora de fin de disponibilidad'
+    )
+    is_active = models.BooleanField(
+        'Activo',
+        default=True,
+        help_text='Si está activo o deshabilitado temporalmente'
+    )
+    slot_duration_minutes = models.IntegerField(
+        'Duración de slots (minutos)',
+        default=60,
+        help_text='Duración de cada slot de cita (30, 60, 90 minutos)'
+    )
+
+    # Audit fields
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Última actualización', auto_now=True)
+
+    class Meta:
+        db_table = 'lawyer_availability'
+        verbose_name = 'Disponibilidad de Abogado'
+        verbose_name_plural = 'Disponibilidades de Abogados'
+        ordering = ['lawyer', 'day_of_week', 'start_time']
+        unique_together = [['lawyer', 'day_of_week', 'start_time']]
+        indexes = [
+            models.Index(fields=['lawyer', 'day_of_week', 'is_active']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        day_name = self.get_day_of_week_display()
+        return f"{self.lawyer.get_full_name()} - {day_name} {self.start_time.strftime('%H:%M')}-{self.end_time.strftime('%H:%M')}"
+
+    def clean(self):
+        """Validate availability data."""
+        from django.core.exceptions import ValidationError
+
+        if self.end_time <= self.start_time:
+            raise ValidationError({
+                'end_time': 'La hora de fin debe ser posterior a la hora de inicio'
+            })
+
+        if self.slot_duration_minutes not in [15, 30, 45, 60, 90, 120]:
+            raise ValidationError({
+                'slot_duration_minutes': 'La duración debe ser 15, 30, 45, 60, 90 o 120 minutos'
+            })
+
+
 class Appointment(models.Model):
     """
     Appointment model for scheduling client meetings.
@@ -64,6 +149,7 @@ class Appointment(models.Model):
         ('in_person', 'Presencial'),
         ('phone', 'Teléfono'),
         ('video', 'Videollamada'),
+        ('teams', 'Microsoft Teams'),
     ]
 
     STATUS_CHOICES = [
@@ -163,6 +249,12 @@ class Appointment(models.Model):
         max_length=500,
         blank=True,
         help_text='URL de Google Meet para videollamadas'
+    )
+    teams_meeting_link = models.URLField(
+        'Enlace de Microsoft Teams',
+        max_length=500,
+        blank=True,
+        help_text='URL de Microsoft Teams para citas tipo teams'
     )
     last_sync_at = models.DateTimeField(
         'Última sincronización',

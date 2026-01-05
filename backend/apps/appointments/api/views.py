@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.db.models import Q, Count
 from datetime import datetime, timedelta
 
-from apps.appointments.models import Appointment
+from apps.appointments.models import Appointment, LawyerAvailability
 from apps.appointments.services.google_calendar import GoogleCalendarService
 from apps.appointments.services.availability import AvailabilityService
 from apps.appointments.services.notification import AppointmentNotificationService
@@ -22,7 +22,9 @@ from .serializers import (
     AppointmentUpdateSerializer,
     AppointmentMinimalSerializer,
     PublicAppointmentRequestSerializer,
-    AvailableSlotSerializer
+    AvailableSlotSerializer,
+    LawyerAvailabilitySerializer,
+    LawyerAvailabilityCreateSerializer
 )
 
 
@@ -499,3 +501,58 @@ class AppointmentPortalViewSet(viewsets.ReadOnlyModelViewSet):
             ).select_related('case', 'created_by').order_by('-starts_at')
 
         return Appointment.objects.none()
+
+
+class LawyerAvailabilityViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing lawyer availability configuration.
+
+    Endpoints:
+    - GET /api/appointments/availability/ - List all availability slots
+    - POST /api/appointments/availability/ - Create new availability
+    - GET /api/appointments/availability/{id}/ - Get specific availability
+    - PATCH /api/appointments/availability/{id}/ - Update availability
+    - DELETE /api/appointments/availability/{id}/ - Delete availability
+
+    Only accessible by staff (boss/employe).
+    """
+
+    queryset = LawyerAvailability.objects.all().select_related('lawyer').order_by('day_of_week', 'start_time')
+    permission_classes = [IsAuthenticated, IsStaff]
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action."""
+        if self.action == 'create':
+            return LawyerAvailabilityCreateSerializer
+        return LawyerAvailabilitySerializer
+
+    def get_queryset(self):
+        """Return availability for current user (lawyer)."""
+        user = self.request.user
+
+        # Filter by lawyer if specified in query params (for admins)
+        lawyer_id = self.request.query_params.get('lawyer', None)
+        if lawyer_id and user.role == 'boss':
+            return self.queryset.filter(lawyer_id=lawyer_id)
+
+        # By default, return only current user's availability
+        return self.queryset.filter(lawyer=user)
+
+    @action(detail=False, methods=['get'])
+    def week_view(self, request):
+        """
+        Get availability organized by day of week.
+
+        GET /api/appointments/availability/week_view/
+
+        Returns a dict with days 0-6 and their availability slots.
+        """
+        queryset = self.get_queryset().filter(is_active=True)
+
+        week_data = {i: [] for i in range(7)}  # 0-6 for Mon-Sun
+
+        for availability in queryset:
+            day = availability.day_of_week
+            week_data[day].append(LawyerAvailabilitySerializer(availability).data)
+
+        return Response(week_data)
