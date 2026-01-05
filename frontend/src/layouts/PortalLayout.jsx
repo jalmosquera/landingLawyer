@@ -56,10 +56,19 @@ function PortalLayout({ children }) {
         }`}
       >
         <div className="flex items-center justify-between h-16 px-4 bg-gray-900">
-          <span className="text-xl font-bold text-white">Portal Cliente</span>
+          <div className="flex-1 flex justify-center">
+            <div className="flex flex-col items-center">
+              <img
+                src="/logo.png"
+                alt="LandingLawyer"
+                className="h-10 w-auto object-contain mb-1"
+              />
+              <span className="text-xs text-blue-400 font-medium">Portal Cliente</span>
+            </div>
+          </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="text-gray-400 hover:text-white"
+            className="text-gray-400 hover:text-white absolute right-4"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
@@ -90,8 +99,15 @@ function PortalLayout({ children }) {
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-gray-800 overflow-y-auto">
-          <div className="flex items-center h-16 flex-shrink-0 px-4 bg-gray-900">
-            <span className="text-xl font-bold text-white">Portal Cliente</span>
+          <div className="flex items-center justify-center h-16 flex-shrink-0 px-4 bg-gray-900">
+            <div className="flex flex-col items-center">
+              <img
+                src="/logo.png"
+                alt="LandingLawyer"
+                className="h-10 w-auto object-contain mb-1"
+              />
+              <span className="text-xs text-blue-400 font-medium">Portal Cliente</span>
+            </div>
           </div>
           <nav className="flex-1 mt-8 px-4">
             {navigation.map((item) => {
@@ -146,10 +162,15 @@ function PortalLayout({ children }) {
           >
             <Bars3Icon className="h-6 w-6" />
           </button>
-          <div className="flex-1 flex items-center justify-between px-4">
-            <span className="text-lg font-semibold text-gray-900 dark:text-white">
-              Portal Cliente
-            </span>
+          <div className="flex-1 flex items-center justify-center px-4">
+            <div className="flex flex-col items-center">
+              <img
+                src="/logo.png"
+                alt="LandingLawyer"
+                className="h-9 w-auto object-contain mb-0.5"
+              />
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Portal Cliente</span>
+            </div>
             <button
               onClick={handleLogout}
               className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
