@@ -39,6 +39,8 @@ function AppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [appointmentToDelete, setAppointmentToDelete] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [viewAppointment, setViewAppointment] = useState(null)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -201,6 +203,16 @@ function AppointmentsPage() {
     setIsModalOpen(false)
     setSelectedAppointment(null)
     setFormErrors({})
+  }
+
+  const handleViewAppointment = (appointment) => {
+    setViewAppointment(appointment)
+    setIsViewModalOpen(true)
+  }
+
+  const handleCloseViewModal = () => {
+    setIsViewModalOpen(false)
+    setViewAppointment(null)
   }
 
   const handleChange = (e) => {
@@ -415,8 +427,8 @@ function AppointmentsPage() {
           <Table>
             <Table.Header>
               <tr>
-                <Table.HeaderCell>Cita</Table.HeaderCell>
                 <Table.HeaderCell>Cliente</Table.HeaderCell>
+                <Table.HeaderCell>Cita</Table.HeaderCell>
                 <Table.HeaderCell>Fecha y Hora</Table.HeaderCell>
                 <Table.HeaderCell>Tipo</Table.HeaderCell>
                 <Table.HeaderCell>Estado</Table.HeaderCell>
@@ -429,6 +441,14 @@ function AppointmentsPage() {
                 return (
                   <Table.Row key={apt.id}>
                     <Table.Cell>
+                      <button
+                        onClick={() => handleViewAppointment(apt)}
+                        className="text-left hover:underline text-primary dark:text-blue-400 font-medium"
+                      >
+                        {apt.client_data?.full_name || apt.requested_by_name || '-'}
+                      </button>
+                    </Table.Cell>
+                    <Table.Cell>
                       <div>
                         <div className="font-medium text-gray-900 dark:text-white">
                           {apt.title}
@@ -439,9 +459,6 @@ function AppointmentsPage() {
                           </div>
                         )}
                       </div>
-                    </Table.Cell>
-                    <Table.Cell>
-                      {apt.client_data?.full_name || apt.requested_by_name || '-'}
                     </Table.Cell>
                     <Table.Cell>
                       <div>
@@ -768,6 +785,150 @@ function AppointmentsPage() {
           </Button>
           <Button variant="danger" onClick={handleDeleteConfirm}>
             Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* View Appointment Details Modal */}
+      <Modal
+        isOpen={isViewModalOpen}
+        onClose={handleCloseViewModal}
+        title="Detalles de la Cita"
+        size="lg"
+      >
+        <Modal.Body>
+          {viewAppointment && (
+            <div className="space-y-4">
+              {/* Cliente */}
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  Cliente
+                </label>
+                <p className="text-gray-900 dark:text-white font-medium">
+                  {viewAppointment.client_data?.full_name || viewAppointment.requested_by_name || '-'}
+                </p>
+              </div>
+
+              {/* Caso */}
+              {viewAppointment.case_data && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Caso
+                  </label>
+                  <p className="text-gray-900 dark:text-white">
+                    {viewAppointment.case_data.case_number} - {viewAppointment.case_data.title}
+                  </p>
+                </div>
+              )}
+
+              {/* Título */}
+              <div>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  Título de la Cita
+                </label>
+                <p className="text-gray-900 dark:text-white font-medium">
+                  {viewAppointment.title}
+                </p>
+              </div>
+
+              {/* Fecha y Hora */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Inicio
+                  </label>
+                  <p className="text-gray-900 dark:text-white">
+                    {formatDateTime(viewAppointment.starts_at)}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Fin
+                  </label>
+                  <p className="text-gray-900 dark:text-white">
+                    {formatDateTime(viewAppointment.ends_at)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tipo y Estado */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Tipo
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const TypeIcon = getTypeIcon(viewAppointment.appointment_type)
+                      return <TypeIcon className="h-4 w-4 text-gray-400" />
+                    })()}
+                    <span className="text-gray-900 dark:text-white">
+                      {getTypeLabel(viewAppointment.appointment_type)}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Estado
+                  </label>
+                  <Badge variant={getStatusColor(viewAppointment.status)}>
+                    {getStatusLabel(viewAppointment.status)}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Ubicación */}
+              {viewAppointment.location && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Ubicación
+                  </label>
+                  <p className="text-gray-900 dark:text-white">
+                    {viewAppointment.location}
+                  </p>
+                </div>
+              )}
+
+              {/* Descripción */}
+              {viewAppointment.description && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Descripción
+                  </label>
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                    {viewAppointment.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Notas Internas */}
+              {viewAppointment.internal_notes && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    Notas Internas
+                  </label>
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                    <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">
+                      {viewAppointment.internal_notes}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="ghost" onClick={handleCloseViewModal}>
+            Cerrar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              handleCloseViewModal()
+              handleOpenModal(viewAppointment)
+            }}
+          >
+            Editar Cita
           </Button>
         </Modal.Footer>
       </Modal>
