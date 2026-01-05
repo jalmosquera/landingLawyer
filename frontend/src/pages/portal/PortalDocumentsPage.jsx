@@ -155,33 +155,33 @@ function PortalDocumentsPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-3">
           {filteredDocuments.map((doc) => (
             <Card key={doc.id} hover className="overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-start gap-4">
+              <div className="p-4">
+                <div className="flex items-start gap-3">
                   {/* Icon */}
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
-                      <DocumentTextIcon className="h-6 w-6 text-accent" />
+                    <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                      <DocumentTextIcon className="h-5 w-5 text-accent" />
                     </div>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="flex items-start justify-between gap-3 mb-1">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
                           {doc.title}
                         </h3>
                         {doc.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-1">
                             {doc.description}
                           </p>
                         )}
                       </div>
                       {doc.is_sensitive && (
-                        <Badge variant="warning" className="flex-shrink-0">
+                        <Badge variant="warning" size="sm" className="flex-shrink-0">
                           <ShieldCheckIcon className="h-3 w-3 mr-1 inline" />
                           Código requerido
                         </Badge>
@@ -189,43 +189,48 @@ function PortalDocumentsPage() {
                     </div>
 
                     {/* Metadata */}
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 mt-3">
+                    <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400 mt-2">
                       <div className="flex items-center gap-1">
-                        <FolderIcon className="h-4 w-4" />
+                        <FolderIcon className="h-3.5 w-3.5" />
                         <span>{getCaseTitle(doc.case)}</span>
                       </div>
-                      <div>
-                        <Badge variant="default" size="sm">
-                          {getDocumentTypeLabel(doc.document_type)}
-                        </Badge>
-                      </div>
+                      <span>•</span>
+                      <Badge variant="default" size="sm">
+                        {getDocumentTypeLabel(doc.document_type)}
+                      </Badge>
+                      <span>•</span>
                       <span>{formatDate(doc.uploaded_at)}</span>
-                      {doc.file_size && <span>{formatFileSize(doc.file_size)}</span>}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="mt-4">
-                      {doc.is_sensitive ? (
-                        <Link to="/documents/verify">
-                          <Button variant="accent" size="sm">
-                            <ShieldCheckIcon className="h-4 w-4 mr-2" />
-                            Verificar código
-                          </Button>
-                        </Link>
-                      ) : (
-                        <Button variant="primary" size="sm">
-                          <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                          Descargar
-                        </Button>
+                      {doc.file_size && (
+                        <>
+                          <span>•</span>
+                          <span>{formatFileSize(doc.file_size)}</span>
+                        </>
                       )}
                     </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex-shrink-0">
+                    {doc.is_sensitive ? (
+                      <Link to="/documents/verify">
+                        <Button variant="accent" size="sm">
+                          <ShieldCheckIcon className="h-4 w-4 mr-1" />
+                          Verificar
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button variant="primary" size="sm">
+                        <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
+                        Descargar
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Footer */}
               {doc.uploaded_by_client && (
-                <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-t border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Documento subido por ti
                   </p>
