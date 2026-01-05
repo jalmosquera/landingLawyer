@@ -15,6 +15,9 @@ import {
   VideoCameraIcon,
   PhoneIcon,
   MapPinIcon,
+  UserCircleIcon,
+  BriefcaseIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline'
 import {
   Button,
@@ -794,123 +797,154 @@ function AppointmentsPage() {
         isOpen={isViewModalOpen}
         onClose={handleCloseViewModal}
         title="Detalles de la Cita"
-        size="lg"
+        size="xl"
       >
         <Modal.Body>
           {viewAppointment && (
-            <div className="space-y-4">
-              {/* Cliente */}
-              <div>
-                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                  Cliente
-                </label>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {viewAppointment.client_data?.full_name || viewAppointment.requested_by_name || '-'}
-                </p>
-              </div>
-
-              {/* Caso */}
-              {viewAppointment.case_data && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Caso
-                  </label>
-                  <p className="text-gray-900 dark:text-white">
-                    {viewAppointment.case_data.case_number} - {viewAppointment.case_data.title}
-                  </p>
-                </div>
-              )}
-
-              {/* Título */}
-              <div>
-                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                  Título de la Cita
-                </label>
-                <p className="text-gray-900 dark:text-white font-medium">
-                  {viewAppointment.title}
-                </p>
-              </div>
-
-              {/* Fecha y Hora */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Inicio
-                  </label>
-                  <p className="text-gray-900 dark:text-white">
-                    {formatDateTime(viewAppointment.starts_at)}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Fin
-                  </label>
-                  <p className="text-gray-900 dark:text-white">
-                    {formatDateTime(viewAppointment.ends_at)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Tipo y Estado */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Tipo
-                  </label>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      const TypeIcon = getTypeIcon(viewAppointment.appointment_type)
-                      return <TypeIcon className="h-4 w-4 text-gray-400" />
-                    })()}
-                    <span className="text-gray-900 dark:text-white">
-                      {getTypeLabel(viewAppointment.appointment_type)}
-                    </span>
+            <div className="space-y-6">
+              {/* Header Card - Cliente y Estado */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-100 dark:border-blue-800">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <UserCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                        Cliente
+                      </span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {viewAppointment.client_data?.full_name || viewAppointment.requested_by_name || '-'}
+                    </h3>
+                    {viewAppointment.case_data && (
+                      <div className="mt-2 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <BriefcaseIcon className="h-4 w-4" />
+                        <span>{viewAppointment.case_data.case_number} - {viewAppointment.case_data.title}</span>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Estado
-                  </label>
-                  <Badge variant={getStatusColor(viewAppointment.status)}>
+                  <Badge variant={getStatusColor(viewAppointment.status)} size="lg">
                     {getStatusLabel(viewAppointment.status)}
                   </Badge>
                 </div>
               </div>
 
+              {/* Título de la Cita */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                    <CalendarIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Título de la Cita
+                    </h4>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {viewAppointment.title}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fecha, Hora y Tipo */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Fecha y Hora Inicio */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ClockIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                      Inicio
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {formatDateTime(viewAppointment.starts_at)}
+                  </p>
+                </div>
+
+                {/* Fecha y Hora Fin */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ClockIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                      Fin
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {formatDateTime(viewAppointment.ends_at)}
+                  </p>
+                </div>
+
+                {/* Tipo de Cita */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    {(() => {
+                      const TypeIcon = getTypeIcon(viewAppointment.appointment_type)
+                      return <TypeIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    })()}
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                      Tipo
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {getTypeLabel(viewAppointment.appointment_type)}
+                  </p>
+                </div>
+              </div>
+
               {/* Ubicación */}
               {viewAppointment.location && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Ubicación
-                  </label>
-                  <p className="text-gray-900 dark:text-white">
-                    {viewAppointment.location}
-                  </p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                      <MapPinIcon className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                        Ubicación
+                      </h4>
+                      <p className="text-base text-gray-900 dark:text-white">
+                        {viewAppointment.location}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {/* Descripción */}
               {viewAppointment.description && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Descripción
-                  </label>
-                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                    {viewAppointment.description}
-                  </p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                      <DocumentTextIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                        Descripción
+                      </h4>
+                      <p className="text-base text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                        {viewAppointment.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {/* Notas Internas */}
               {viewAppointment.internal_notes && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Notas Internas
-                  </label>
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                    <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">
-                      {viewAppointment.internal_notes}
-                    </p>
+                <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-xl p-5 border-2 border-amber-200 dark:border-amber-800 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-amber-100 dark:bg-amber-900/40 rounded-lg flex items-center justify-center">
+                      <svg className="h-5 w-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-bold text-amber-800 dark:text-amber-400 mb-2 uppercase tracking-wide">
+                        Notas Internas (Confidencial)
+                      </h4>
+                      <p className="text-base text-amber-900 dark:text-amber-200 whitespace-pre-wrap leading-relaxed">
+                        {viewAppointment.internal_notes}
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
