@@ -12,15 +12,31 @@ import {
   PhoneIcon,
   VideoCameraIcon,
   UserIcon,
+  PlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
-import { Card, LoadingSpinner, Badge, EmptyState } from '../../components/ui'
+import { Card, LoadingSpinner, Badge, EmptyState, Button, Modal } from '../../components/ui'
 import { portalAPI } from '../../services/api'
+import axios from 'axios'
+import useAuthStore from '../../stores/authStore'
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
 function PortalAppointmentsPage() {
+  const { user } = useAuthStore()
   const [loading, setLoading] = useState(true)
   const [appointments, setAppointments] = useState([])
   const [statusFilter, setStatusFilter] = useState('all')
   const [timeFilter, setTimeFilter] = useState('upcoming')
+
+  // Request modal states
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState('')
+  const [availableSlots, setAvailableSlots] = useState([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [selectedSlot, setSelectedSlot] = useState(null)
+  const [requestMessage, setRequestMessage] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -35,6 +51,81 @@ function PortalAppointmentsPage() {
       console.error('Error fetching appointments:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Fetch available slots for selected date
+  useEffect(() => {
+    if (selectedDate) {
+      fetchAvailableSlots()
+    }
+  }, [selectedDate])
+
+  const fetchAvailableSlots = async () => {
+    if (!selectedDate) return
+
+    try {
+      setLoadingSlots(true)
+      const response = await axios.get(
+        `${API_BASE_URL}/public/appointments/available-slots/`,
+        {
+          params: {
+            date: selectedDate,
+            duration: 60,
+          },
+        }
+      )
+      setAvailableSlots(response.data.slots || [])
+    } catch (error) {
+      console.error('Error fetching slots:', error)
+      alert('Error al cargar horarios disponibles')
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
+  const handleRequestAppointment = async () => {
+    if (!selectedSlot) {
+      alert('Por favor selecciona un horario')
+      return
+    }
+
+    if (!user?.client_profile) {
+      alert('No se pudo obtener información del cliente')
+      return
+    }
+
+    try {
+      setSubmitting(true)
+
+      // Get client info
+      const clientInfo = user.client_profile
+
+      await axios.post(`${API_BASE_URL}/public/appointments/request/`, {
+        requested_by_name: clientInfo.full_name || user.name,
+        requested_by_email: clientInfo.email || user.email,
+        requested_by_phone: clientInfo.phone || '',
+        starts_at: selectedSlot.start_time,
+        ends_at: selectedSlot.end_time,
+        message: requestMessage,
+      })
+
+      alert('¡Solicitud enviada! El abogado revisará tu solicitud y te confirmará por correo.')
+
+      // Reset and close modal
+      setIsRequestModalOpen(false)
+      setSelectedDate('')
+      setSelectedSlot(null)
+      setRequestMessage('')
+      setAvailableSlots([])
+
+      // Refresh appointments list
+      fetchData()
+    } catch (error) {
+      console.error('Error requesting appointment:', error)
+      alert(error.response?.data?.detail || 'Error al solicitar la cita')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -143,13 +234,23 @@ function PortalAppointmentsPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Mis Citas
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Consulta tus citas programadas
-        </p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Mis Citas
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Consulta tus citas programadas
+          </p>
+        </div>
+        <Button
+          onClick={() => setIsRequestModalOpen(true)}
+          variant="primary"
+          className="flex items-center gap-2"
+        >
+          <PlusIcon className="h-5 w-5" />
+          Solicitar Cita
+        </Button>
       </div>
 
       {/* Filters */}
@@ -330,6 +431,138 @@ function PortalAppointmentsPage() {
           })}
         </div>
       )}
+
+      {/* Request Appointment Modal */}
+      <Modal
+        isOpen={isRequestModalOpen}
+        onClose={() => {
+          setIsRequestModalOpen(false)
+          setSelectedDate('')
+          setSelectedSlot(null)
+          setRequestMessage('')
+          setAvailableSlots([])
+        }}
+        title="Solicitar Cita"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Date Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Selecciona una fecha
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value)
+                setSelectedSlot(null) // Reset slot when date changes
+              }}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
+            />
+          </div>
+
+          {/* Available Slots */}
+          {selectedDate && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Horarios disponibles
+              </label>
+
+              {loadingSlots ? (
+                <div className="flex items-center justify-center py-8">
+                  <LoadingSpinner text="Cargando horarios..." />
+                </div>
+              ) : availableSlots.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  No hay horarios disponibles para esta fecha
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+                  {availableSlots.map((slot, index) => {
+                    const isSelected = selectedSlot?.start_time === slot.start_time
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedSlot(slot)}
+                        className={`p-3 rounded-lg border-2 transition-all ${
+                          isSelected
+                            ? 'border-accent bg-accent/10 text-accent'
+                            : 'border-gray-300 dark:border-gray-600 hover:border-accent/50 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <ClockIcon className="h-4 w-4" />
+                          <span className="font-medium">
+                            {new Date(slot.start_time).toLocaleTimeString('es-ES', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                        {slot.lawyer_name && (
+                          <div className="text-xs mt-1 opacity-75">
+                            {slot.lawyer_name}
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Message */}
+          {selectedSlot && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Mensaje (opcional)
+              </label>
+              <textarea
+                value={requestMessage}
+                onChange={(e) => setRequestMessage(e.target.value)}
+                rows={4}
+                placeholder="Describe brevemente el motivo de la consulta..."
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent resize-none"
+              />
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Button
+              onClick={() => {
+                setIsRequestModalOpen(false)
+                setSelectedDate('')
+                setSelectedSlot(null)
+                setRequestMessage('')
+                setAvailableSlots([])
+              }}
+              variant="secondary"
+              disabled={submitting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleRequestAppointment}
+              variant="primary"
+              disabled={!selectedSlot || submitting}
+              className="flex items-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <LoadingSpinner size="sm" />
+                  Enviando...
+                </>
+              ) : (
+                'Enviar Solicitud'
+              )}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
