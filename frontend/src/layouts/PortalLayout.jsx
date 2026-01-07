@@ -51,18 +51,19 @@ function PortalLayout({ children }) {
 
       {/* Mobile sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 transform transition-transform duration-300 ease-in-out lg:hidden ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 transform transition-transform duration-300 ease-in-out lg:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex items-center justify-between h-16 px-4 bg-gray-900">
           <div className="flex-1 flex justify-center">
             <div className="flex flex-col items-center">
-              <img
-                src="/logo.png"
-                alt="LandingLawyer"
-                className="h-10 w-auto object-contain mb-1"
-              />
+              <Link to="/">
+                <img
+                  src="/logo.png"
+                  alt="LandingLawyer"
+                  className="h-10 w-auto object-contain mb-1 cursor-pointer hover:opacity-80 transition-opacity"
+                />
+              </Link>
               <span className="text-xs text-blue-400 font-medium">Portal Cliente</span>
             </div>
           </div>
@@ -82,11 +83,10 @@ function PortalLayout({ children }) {
                 key={item.name}
                 to={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
-                  active
-                    ? 'bg-accent text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${active
+                  ? 'bg-accent text-white'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }`}
               >
                 <Icon className="h-5 w-5" />
                 <span className="font-medium">{item.name}</span>
@@ -101,11 +101,13 @@ function PortalLayout({ children }) {
         <div className="flex flex-col flex-grow bg-gray-800 overflow-y-auto">
           <div className="flex items-center justify-center h-16 flex-shrink-0 px-4 bg-gray-900">
             <div className="flex flex-col items-center">
-              <img
-                src="/logo.png"
-                alt="LandingLawyer"
-                className="h-10 w-auto object-contain mb-1"
-              />
+              <Link to="/">
+                <img
+                  src="/logo.png"
+                  alt="LandingLawyer"
+                  className="h-10 w-auto object-contain mb-1 cursor-pointer hover:opacity-80 transition-opacity"
+                />
+              </Link>
               <span className="text-xs text-blue-400 font-medium">Portal Cliente</span>
             </div>
           </div>
@@ -117,11 +119,10 @@ function PortalLayout({ children }) {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
-                    active
-                      ? 'bg-accent text-white'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${active
+                    ? 'bg-accent text-white'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }`}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{item.name}</span>
@@ -164,11 +165,13 @@ function PortalLayout({ children }) {
           </button>
           <div className="flex-1 flex items-center justify-center px-4">
             <div className="flex flex-col items-center">
-              <img
-                src="/logo.png"
-                alt="LandingLawyer"
-                className="h-9 w-auto object-contain mb-0.5"
-              />
+              <Link to="/">
+                <img
+                  src="/logo.png"
+                  alt="LandingLawyer"
+                  className="h-9 w-auto object-contain mb-0.5 cursor-pointer hover:opacity-80 transition-opacity"
+                />
+              </Link>
               <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Portal Cliente</span>
             </div>
             <button

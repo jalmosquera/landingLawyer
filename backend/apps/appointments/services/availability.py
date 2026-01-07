@@ -218,15 +218,33 @@ class AvailabilityService:
         Returns:
             bool: True if time is available
         """
-        # Check if it's within business hours
-        if start_time.time() < self.business_start or end_time.time() > self.business_end:
+        # Get the day of week for the requested time
+        day_of_week = start_time.weekday()
+
+        # Check if there's any active availability configuration for this day
+        availability_configs = LawyerAvailability.objects.filter(
+            day_of_week=day_of_week,
+            is_active=True
+        )
+
+        if self.lawyer:
+            availability_configs = availability_configs.filter(lawyer=self.lawyer)
+
+        # If no availability configured for this day, it's not available
+        if not availability_configs.exists():
             return False
 
-        # Check if it's a working day
-        if start_time.weekday() not in self.working_days:
+        # Check if the requested time falls within any availability window
+        time_in_range = False
+        for config in availability_configs:
+            if config.start_time <= start_time.time() and end_time.time() <= config.end_time:
+                time_in_range = True
+                break
+
+        if not time_in_range:
             return False
 
-        # Check for conflicts
+        # Check for conflicts with existing appointments
         conflicts = Appointment.objects.filter(
             starts_at__lt=end_time,
             ends_at__gt=start_time,

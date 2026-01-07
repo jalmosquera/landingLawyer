@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { UserCircleIcon } from '@heroicons/react/24/solid'
+import useAuthStore from '../../stores/authStore'
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const navigate = useNavigate()
+  const { user } = useAuthStore()
 
   const menuItems = [
-    { label: 'Home', href: '#home' },
-    { label: 'About', href: '#about' },
-    { label: 'Practice Areas', href: '#practice-areas' },
-    { label: 'Testimonials', href: '#testimonials' },
-    { label: 'Contact', href: '#contact' },
+    { label: 'Inicio', href: '#home' },
+    { label: 'Acerca de nosotros', href: '#about' },
+    { label: 'Areas de experiencia', href: '#practice-areas' },
+    { label: 'Testimonios', href: '#testimonials' },
+    { label: 'Contacto', href: '#contact' },
   ]
 
   useEffect(() => {
@@ -48,18 +51,32 @@ function Header() {
 
             {/* Contact Button */}
             <div className="hidden md:flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/login')}
-                className="px-4 py-2 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => navigate('/register')}
-                className="px-4 py-2 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
-              >
-                Registro
-              </button>
+              {user ? (
+                // Usuario logueado
+                <button
+                  onClick={() => navigate(user.role === 'client' ? '/portal/dashboard' : '/dashboard/home')}
+                  className="flex items-center space-x-2 px-4 py-2 text-accent hover:text-accent-light transition-all duration-300"
+                >
+                  <UserCircleIcon className="h-6 w-6" />
+                  <span className="font-medium">{user.name}</span>
+                </button>
+              ) : (
+                // Usuario no logueado
+                <>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="px-4 py-2 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => navigate('/register')}
+                    className="px-4 py-2 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
+                  >
+                    Registro
+                  </button>
+                </>
+              )}
               <button className="btn-accent">Free Consultation</button>
             </div>
 
@@ -182,24 +199,41 @@ function Header() {
             >
               info@lawfirm.com
             </a>
-            <button
-              onClick={() => {
-                navigate('/login')
-                setIsMenuOpen(false)
-              }}
-              className="w-full mt-6 px-6 py-3 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => {
-                navigate('/register')
-                setIsMenuOpen(false)
-              }}
-              className="w-full mt-3 px-6 py-3 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
-            >
-              Registro
-            </button>
+            {user ? (
+              // Usuario logueado
+              <button
+                onClick={() => {
+                  navigate(user.role === 'client' ? '/portal/dashboard' : '/dashboard/home')
+                  setIsMenuOpen(false)
+                }}
+                className="w-full mt-6 px-6 py-3 flex items-center justify-center space-x-2 bg-accent text-primary rounded-lg hover:bg-accent-light transition-all duration-300"
+              >
+                <UserCircleIcon className="h-6 w-6" />
+                <span className="font-semibold">{user.name}</span>
+              </button>
+            ) : (
+              // Usuario no logueado
+              <>
+                <button
+                  onClick={() => {
+                    navigate('/login')
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full mt-6 px-6 py-3 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/register')
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full mt-3 px-6 py-3 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
+                >
+                  Registro
+                </button>
+              </>
+            )}
             <button className="btn-accent w-full mt-3">
               Free Consultation
             </button>

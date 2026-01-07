@@ -63,11 +63,13 @@ function DashboardLayout({ children }) {
       >
         <div className="flex items-center justify-between h-16 px-4 bg-gray-900">
           <div className="flex-1 flex justify-center">
-            <img
-              src="/logo.png"
-              alt="LandingLawyer"
-              className="h-12 w-auto object-contain"
-            />
+            <Link to="/">
+              <img
+                src="/logo.png"
+                alt="LandingLawyer"
+                className="h-12 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </Link>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -103,11 +105,13 @@ function DashboardLayout({ children }) {
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-gray-800 overflow-y-auto">
           <div className="flex items-center justify-center h-16 flex-shrink-0 px-4 bg-gray-900">
-            <img
-              src="/logo.png"
-              alt="LandingLawyer"
-              className="h-12 w-auto object-contain"
-            />
+            <Link to="/">
+              <img
+                src="/logo.png"
+                alt="LandingLawyer"
+                className="h-12 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </Link>
           </div>
           <nav className="flex-1 mt-8 px-4">
             {navigation.map((item) => {
@@ -163,11 +167,13 @@ function DashboardLayout({ children }) {
             <Bars3Icon className="h-6 w-6" />
           </button>
           <div className="flex-1 flex items-center justify-center px-4">
-            <img
-              src="/logo.png"
-              alt="LandingLawyer"
-              className="h-10 w-auto object-contain"
-            />
+            <Link to="/">
+              <img
+                src="/logo.png"
+                alt="LandingLawyer"
+                className="h-10 w-auto object-contain cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </Link>
             <button
               onClick={handleLogout}
               className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"

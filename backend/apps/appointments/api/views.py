@@ -506,7 +506,7 @@ class PublicAppointmentRequestView(views.APIView):
         appointment = Appointment.objects.create(
             requested_by_name=serializer.validated_data['requested_by_name'],
             requested_by_email=serializer.validated_data['requested_by_email'],
-            requested_by_phone=serializer.validated_data['requested_by_phone'],
+            requested_by_phone=serializer.validated_data.get('requested_by_phone', ''),
             starts_at=serializer.validated_data['starts_at'],
             ends_at=serializer.validated_data['ends_at'],
             appointment_type=serializer.validated_data['appointment_type'],

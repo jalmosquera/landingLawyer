@@ -247,7 +247,8 @@ class PublicAppointmentRequestSerializer(serializers.Serializer):
     )
     requested_by_phone = serializers.CharField(
         max_length=20,
-        required=True,
+        required=False,
+        allow_blank=True,
         help_text='Teléfono de contacto'
     )
     starts_at = serializers.DateTimeField(
