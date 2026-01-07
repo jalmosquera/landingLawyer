@@ -19,6 +19,12 @@ import { Card, LoadingSpinner, Badge, EmptyState, Button, Modal } from '../../co
 import { portalAPI } from '../../services/api'
 import axios from 'axios'
 import useAuthStore from '../../stores/authStore'
+import DatePicker, { registerLocale } from 'react-datepicker'
+import { es } from 'date-fns/locale'
+import 'react-datepicker/dist/react-datepicker.css'
+
+// Registrar el locale español
+registerLocale('es', es)
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
@@ -31,7 +37,8 @@ function PortalAppointmentsPage() {
 
   // Request modal states
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState('')
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [availableDates, setAvailableDates] = useState([])
   const [availableSlots, setAvailableSlots] = useState([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState(null)
@@ -54,6 +61,26 @@ function PortalAppointmentsPage() {
     }
   }
 
+  // Fetch available dates when modal opens
+  const fetchAvailableDates = async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/public/appointments/available-dates/`,
+        {
+          params: {
+            duration: 60,
+            days_ahead: 60,
+          },
+        }
+      )
+      // Convert date strings to Date objects
+      const dates = (response.data.available_dates || []).map((item) => new Date(item.date))
+      setAvailableDates(dates)
+    } catch (error) {
+      console.error('Error fetching available dates:', error)
+    }
+  }
+
   // Fetch available slots for selected date
   useEffect(() => {
     if (selectedDate) {
@@ -66,16 +93,41 @@ function PortalAppointmentsPage() {
 
     try {
       setLoadingSlots(true)
+      // Convert Date object to YYYY-MM-DD string
+      const dateStr = selectedDate.toISOString().split('T')[0]
       const response = await axios.get(
         `${API_BASE_URL}/public/appointments/available-slots/`,
         {
           params: {
-            date: selectedDate,
+            date: dateStr,
             duration: 60,
           },
         }
       )
-      setAvailableSlots(response.data.slots || [])
+
+      // Group slots by start_time to avoid duplicates from multiple lawyers
+      const allSlots = response.data.slots || []
+      const groupedSlots = {}
+
+      allSlots.forEach(slot => {
+        const timeKey = slot.start_time
+        if (!groupedSlots[timeKey]) {
+          groupedSlots[timeKey] = {
+            ...slot,
+            lawyers: []
+          }
+        }
+        if (slot.lawyer_id) {
+          groupedSlots[timeKey].lawyers.push({
+            id: slot.lawyer_id,
+            name: slot.lawyer_name
+          })
+        }
+      })
+
+      // Convert back to array and keep only one slot per time
+      const uniqueSlots = Object.values(groupedSlots)
+      setAvailableSlots(uniqueSlots)
     } catch (error) {
       console.error('Error fetching slots:', error)
       alert('Error al cargar horarios disponibles')
@@ -114,10 +166,11 @@ function PortalAppointmentsPage() {
 
       // Reset and close modal
       setIsRequestModalOpen(false)
-      setSelectedDate('')
+      setSelectedDate(null)
       setSelectedSlot(null)
       setRequestMessage('')
       setAvailableSlots([])
+      setAvailableDates([])
 
       // Refresh appointments list
       fetchData()
@@ -244,7 +297,10 @@ function PortalAppointmentsPage() {
           </p>
         </div>
         <Button
-          onClick={() => setIsRequestModalOpen(true)}
+          onClick={() => {
+            setIsRequestModalOpen(true)
+            fetchAvailableDates()
+          }}
           variant="primary"
           className="flex items-center gap-2"
         >
@@ -437,13 +493,14 @@ function PortalAppointmentsPage() {
         isOpen={isRequestModalOpen}
         onClose={() => {
           setIsRequestModalOpen(false)
-          setSelectedDate('')
+          setSelectedDate(null)
           setSelectedSlot(null)
           setRequestMessage('')
           setAvailableSlots([])
+          setAvailableDates([])
         }}
         title="Solicitar Cita"
-        size="lg"
+        size="2xl"
       >
         <div className="space-y-6">
           {/* Date Selection */}
@@ -451,15 +508,26 @@ function PortalAppointmentsPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Selecciona una fecha
             </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => {
-                setSelectedDate(e.target.value)
+            <DatePicker
+              selected={selectedDate}
+              onChange={(date) => {
+                setSelectedDate(date)
                 setSelectedSlot(null) // Reset slot when date changes
               }}
-              min={new Date().toISOString().split('T')[0]}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-accent focus:border-transparent"
+              minDate={new Date()}
+              maxDate={new Date(new Date().setDate(new Date().getDate() + 60))}
+              filterDate={(date) => {
+                // Only enable dates that are in availableDates
+                if (availableDates.length === 0) return true
+                return availableDates.some(
+                  (availableDate) =>
+                    availableDate.toDateString() === date.toDateString()
+                )
+              }}
+              locale="es"
+              dateFormat="dd/MM/yyyy"
+              inline
+              calendarClassName="w-full"
             />
           </div>
 
@@ -501,9 +569,9 @@ function PortalAppointmentsPage() {
                             })}
                           </span>
                         </div>
-                        {slot.lawyer_name && (
+                        {slot.lawyers && slot.lawyers.length > 1 && (
                           <div className="text-xs mt-1 opacity-75">
-                            {slot.lawyer_name}
+                            {slot.lawyers.length} disponibles
                           </div>
                         )}
                       </button>
@@ -535,10 +603,11 @@ function PortalAppointmentsPage() {
             <Button
               onClick={() => {
                 setIsRequestModalOpen(false)
-                setSelectedDate('')
+                setSelectedDate(null)
                 setSelectedSlot(null)
                 setRequestMessage('')
                 setAvailableSlots([])
+                setAvailableDates([])
               }}
               variant="secondary"
               disabled={submitting}

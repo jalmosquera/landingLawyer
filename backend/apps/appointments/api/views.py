@@ -433,6 +433,59 @@ class PublicAvailabilityView(views.APIView):
         })
 
 
+class PublicAvailableDatesView(views.APIView):
+    """
+    Public endpoint for getting dates with availability in the next 60 days.
+
+    GET /api/public/appointments/available-dates/?duration=60
+
+    Returns list of dates that have at least one available time slot.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        # Get query parameters
+        duration = request.query_params.get('duration', 60)
+        days_ahead = int(request.query_params.get('days_ahead', 60))
+
+        # Parse duration
+        try:
+            duration = int(duration)
+        except ValueError:
+            return Response(
+                {'detail': 'Invalid duration. Must be an integer (minutes)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get today's date
+        today = timezone.now().date()
+
+        # Check availability for each day in the next 60 days
+        available_dates = []
+        availability_service = AvailabilityService()
+
+        for i in range(days_ahead):
+            check_date = today + timedelta(days=i)
+            slots = availability_service.get_available_slots(check_date, duration)
+
+            # Check if there's at least one available slot
+            has_availability = any(slot.get('available', False) for slot in slots)
+
+            if has_availability:
+                available_dates.append({
+                    'date': check_date.strftime('%Y-%m-%d'),
+                    'available_slots_count': len([s for s in slots if s.get('available', False)])
+                })
+
+        return Response({
+            'duration_minutes': duration,
+            'days_checked': days_ahead,
+            'available_dates_count': len(available_dates),
+            'available_dates': available_dates
+        })
+
+
 class PublicAppointmentRequestView(views.APIView):
     """
     Public endpoint for requesting appointments.

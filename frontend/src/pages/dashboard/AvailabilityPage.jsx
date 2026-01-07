@@ -50,7 +50,7 @@ function AvailabilityPage() {
       setLoading(true)
       const token = localStorage.getItem('access_token')
       const response = await axios.get(
-        `${API_BASE_URL}/appointments/availability/week_view/`,
+        `${API_BASE_URL}/lawyer-availability/week_view/`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -69,7 +69,7 @@ function AvailabilityPage() {
       const token = localStorage.getItem('access_token')
 
       await axios.post(
-        `${API_BASE_URL}/appointments/availability/`,
+        `${API_BASE_URL}/lawyer-availability/`,
         {
           day_of_week: dayOfWeek,
           ...newSlot,
@@ -101,7 +101,7 @@ function AvailabilityPage() {
     try {
       const token = localStorage.getItem('access_token')
       await axios.delete(
-        `${API_BASE_URL}/appointments/availability/${slotId}/`,
+        `${API_BASE_URL}/lawyer-availability/${slotId}/`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -117,7 +117,7 @@ function AvailabilityPage() {
     try {
       const token = localStorage.getItem('access_token')
       await axios.patch(
-        `${API_BASE_URL}/appointments/availability/${slotId}/`,
+        `${API_BASE_URL}/lawyer-availability/${slotId}/`,
         { is_active: !currentStatus },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -126,6 +126,43 @@ function AvailabilityPage() {
       await fetchAvailability()
     } catch (error) {
       console.error('Error toggling slot:', error)
+    }
+  }
+
+  const handleDisableAllDay = async (dayOfWeek) => {
+    const slots = weekData[dayOfWeek] || []
+    const activeSlots = slots.filter(slot => slot.is_active)
+
+    if (activeSlots.length === 0) {
+      alert('No hay horarios activos para desactivar en este día')
+      return
+    }
+
+    if (!confirm(`¿Desactivar todos los ${activeSlots.length} horarios de este día? Los clientes no podrán agendar citas en este día.`)) {
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('access_token')
+
+      // Desactivar todos los slots activos
+      await Promise.all(
+        activeSlots.map(slot =>
+          axios.patch(
+            `${API_BASE_URL}/lawyer-availability/${slot.id}/`,
+            { is_active: false },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
+        )
+      )
+
+      await fetchAvailability()
+      alert('Día desactivado correctamente')
+    } catch (error) {
+      console.error('Error disabling day:', error)
+      alert('Error al desactivar el día')
     }
   }
 
@@ -154,25 +191,54 @@ function AvailabilityPage() {
       <div className="space-y-4">
         {DAYS_OF_WEEK.map((day) => {
           const slots = weekData[day.value] || []
+          const activeSlots = slots.filter(slot => slot.is_active)
+          const hasActiveSlots = activeSlots.length > 0
           const isEditing = editingDay === day.value
 
           return (
             <Card key={day.value} className="overflow-hidden">
               <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {day.label}
-                  </h3>
-                  {!isEditing && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => setEditingDay(day.value)}
-                    >
-                      <PlusIcon className="h-4 w-4 mr-1" />
-                      Agregar horario
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {day.label}
+                    </h3>
+                    {hasActiveSlots ? (
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        Disponible
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                        No disponible
+                      </span>
+                    )}
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {activeSlots.length} horario{activeSlots.length !== 1 ? 's' : ''} activo{activeSlots.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {hasActiveSlots && !isEditing && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleDisableAllDay(day.value)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        <XMarkIcon className="h-4 w-4 mr-1" />
+                        Desactivar día
+                      </Button>
+                    )}
+                    {!isEditing && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => setEditingDay(day.value)}
+                      >
+                        <PlusIcon className="h-4 w-4 mr-1" />
+                        Agregar horario
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -229,9 +295,15 @@ function AvailabilityPage() {
                   </div>
                 ) : (
                   !isEditing && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                      Sin horarios configurados
-                    </p>
+                    <div className="text-center py-6 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800">
+                      <XMarkIcon className="h-10 w-10 text-red-400 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-red-800 dark:text-red-400">
+                        No hay horarios configurados
+                      </p>
+                      <p className="text-xs text-red-600 dark:text-red-500 mt-1">
+                        Los clientes no podrán agendar citas en este día
+                      </p>
+                    </div>
                   )
                 )}
 

@@ -8,6 +8,7 @@ from .views import (
     AppointmentViewSet,
     AppointmentPortalViewSet,
     PublicAvailabilityView,
+    PublicAvailableDatesView,
     PublicAppointmentRequestView,
     LawyerAvailabilityViewSet
 )
@@ -18,7 +19,7 @@ router = DefaultRouter()
 # Register viewsets
 router.register(r'appointments', AppointmentViewSet, basename='appointment')
 router.register(r'portal/appointments', AppointmentPortalViewSet, basename='appointment-portal')
-router.register(r'appointments/availability', LawyerAvailabilityViewSet, basename='lawyer-availability')
+router.register(r'lawyer-availability', LawyerAvailabilityViewSet, basename='lawyer-availability')
 
 # Custom URL patterns for public endpoints
 urlpatterns = router.urls + [
@@ -27,6 +28,11 @@ urlpatterns = router.urls + [
         'public/appointments/available-slots/',
         PublicAvailabilityView.as_view(),
         name='appointment-available-slots'
+    ),
+    path(
+        'public/appointments/available-dates/',
+        PublicAvailableDatesView.as_view(),
+        name='appointment-available-dates'
     ),
     path(
         'public/appointments/request/',
