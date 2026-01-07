@@ -16,4 +16,83 @@
   .btn-accent {
     @apply bg-accent hover:bg-accent-dark text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300;
   }
+
+  /* Rich Text Editor Styles */
+  .rich-text-editor .ql-container {
+    @apply rounded-b-lg border-gray-300 dark:border-gray-600;
+    font-size: 14px;
+    min-height: 120px;
+  }
+
+  .rich-text-editor .ql-editor {
+    @apply text-gray-900 dark:text-white;
+    min-height: 120px;
+  }
+
+  .rich-text-editor .ql-editor.ql-blank::before {
+    @apply text-gray-400 dark:text-gray-500;
+  }
+
+  .rich-text-editor .ql-toolbar {
+    @apply rounded-t-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700;
+  }
+
+  .rich-text-editor .ql-stroke {
+    @apply stroke-gray-700 dark:stroke-gray-300;
+  }
+
+  .rich-text-editor .ql-fill {
+    @apply fill-gray-700 dark:fill-gray-300;
+  }
+
+  .rich-text-editor .ql-picker-label {
+    @apply text-gray-700 dark:text-gray-300;
+  }
+
+  .rich-text-editor .ql-toolbar button:hover,
+  .rich-text-editor .ql-toolbar button:focus,
+  .rich-text-editor .ql-toolbar button.ql-active {
+    @apply bg-gray-200 dark:bg-gray-600;
+  }
+
+  .rich-text-editor .ql-toolbar button:hover .ql-stroke,
+  .rich-text-editor .ql-toolbar button:focus .ql-stroke,
+  .rich-text-editor .ql-toolbar button.ql-active .ql-stroke {
+    @apply stroke-primary dark:stroke-blue-400;
+  }
+
+  .rich-text-editor .ql-toolbar button:hover .ql-fill,
+  .rich-text-editor .ql-toolbar button:focus .ql-fill,
+  .rich-text-editor .ql-toolbar button.ql-active .ql-fill {
+    @apply fill-primary dark:fill-blue-400;
+  }
+
+  .rich-text-editor.error .ql-container {
+    @apply border-red-500;
+  }
+
+  .rich-text-editor.error .ql-toolbar {
+    @apply border-red-500 border-b-gray-300 dark:border-b-gray-600;
+  }
+
+  /* Dark mode for editor content */
+  .dark .rich-text-editor .ql-container {
+    @apply bg-gray-700;
+  }
+
+  .dark .rich-text-editor .ql-editor strong {
+    @apply text-white;
+  }
+
+  .dark .rich-text-editor .ql-editor em {
+    @apply text-gray-200;
+  }
+
+  .dark .rich-text-editor .ql-editor u {
+    @apply text-gray-200;
+  }
+
+  .dark .rich-text-editor .ql-editor a {
+    @apply text-blue-400;
+  }
 }

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const navigate = useNavigate()
 
   const menuItems = [
     { label: 'Home', href: '#home' },
@@ -27,7 +29,7 @@ function Header() {
             {/* Logo */}
             <div className="flex items-center">
               <div className="text-2xl font-bold">
-                <span className="text-accent">Law</span> Firm
+                <img className="w-32 h-auto" src="public/logo.png" alt="" />
               </div>
             </div>
 
@@ -46,6 +48,18 @@ function Header() {
 
             {/* Contact Button */}
             <div className="hidden md:flex items-center space-x-4">
+              <button
+                onClick={() => navigate('/login')}
+                className="px-4 py-2 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => navigate('/register')}
+                className="px-4 py-2 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
+              >
+                Registro
+              </button>
               <button className="btn-accent">Free Consultation</button>
             </div>
 
@@ -56,19 +70,16 @@ function Header() {
               aria-label="Toggle menu"
             >
               <span
-                className={`block w-7 h-0.5 bg-white transition-all duration-300 ${
-                  isMenuOpen ? 'rotate-45 translate-y-2' : 'mb-1.5'
-                }`}
+                className={`block w-7 h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2' : 'mb-1.5'
+                  }`}
               ></span>
               <span
-                className={`block h-0.5 bg-white transition-all duration-300 ${
-                  isMenuOpen ? 'opacity-0 w-0' : 'opacity-100 w-6 mb-1.5'
-                }`}
+                className={`block h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? 'opacity-0 w-0' : 'opacity-100 w-6 mb-1.5'
+                  }`}
               ></span>
               <span
-                className={`block w-4 h-0.5 bg-white transition-all duration-300 ${
-                  isMenuOpen ? '-rotate-45 -translate-y-2 w-7' : ''
-                }`}
+                className={`block w-4 h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-2 w-7' : ''
+                  }`}
               ></span>
             </button>
           </div>
@@ -77,17 +88,15 @@ function Header() {
 
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black transition-opacity duration-300 md:hidden ${
-          isMenuOpen ? 'opacity-40 z-40' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 bg-black transition-opacity duration-300 md:hidden ${isMenuOpen ? 'opacity-40 z-40' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={() => setIsMenuOpen(false)}
       />
 
       {/* Fullwidth Mobile Menu */}
       <div
-        className={`fixed inset-0 w-screen h-screen text-white transition-transform duration-500 ease-in-out md:hidden z-50 flex flex-col ${
-          isMenuOpen ? 'translate-y-0' : '-translate-y-full'
-        }`}
+        className={`fixed inset-0 w-screen h-screen text-white transition-transform duration-500 ease-in-out md:hidden z-50 flex flex-col ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'
+          }`}
       >
         {/* Upper Section - Menu */}
         <div className="flex-1 bg-primary flex flex-col">
@@ -121,11 +130,10 @@ function Header() {
                 <a
                   key={item.label}
                   href={item.href}
-                  className={`flex items-baseline hover:text-accent transition-all duration-300 transform group ${
-                    isMenuOpen
-                      ? 'translate-y-0 opacity-100'
-                      : 'translate-y-12 opacity-0'
-                  }`}
+                  className={`flex items-baseline hover:text-accent transition-all duration-300 transform group ${isMenuOpen
+                    ? 'translate-y-0 opacity-100'
+                    : 'translate-y-12 opacity-0'
+                    }`}
                   style={{
                     transitionDelay: isMenuOpen ? `${index * 100}ms` : '0ms',
                   }}
@@ -148,11 +156,10 @@ function Header() {
           <h2 className="text-sm font-bold tracking-[0.3em] mb-6">OFFICE</h2>
 
           <div
-            className={`space-y-3 transition-all duration-300 transform ${
-              isMenuOpen
-                ? 'translate-y-0 opacity-100'
-                : 'translate-y-12 opacity-0'
-            }`}
+            className={`space-y-3 transition-all duration-300 transform ${isMenuOpen
+              ? 'translate-y-0 opacity-100'
+              : 'translate-y-12 opacity-0'
+              }`}
             style={{
               transitionDelay: isMenuOpen ? `${menuItems.length * 100}ms` : '0ms',
             }}
@@ -175,7 +182,25 @@ function Header() {
             >
               info@lawfirm.com
             </a>
-            <button className="btn-accent w-full mt-6">
+            <button
+              onClick={() => {
+                navigate('/login')
+                setIsMenuOpen(false)
+              }}
+              className="w-full mt-6 px-6 py-3 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => {
+                navigate('/register')
+                setIsMenuOpen(false)
+              }}
+              className="w-full mt-3 px-6 py-3 text-white border border-white rounded-lg hover:bg-white hover:text-primary transition-all duration-300"
+            >
+              Registro
+            </button>
+            <button className="btn-accent w-full mt-3">
               Free Consultation
             </button>
           </div>

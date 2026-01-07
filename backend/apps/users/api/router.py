@@ -11,7 +11,8 @@ from .views import (
     MeView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
-    CustomTokenObtainPairView
+    CustomTokenObtainPairView,
+    RegisterView
 )
 
 # Create router and register viewsets
@@ -23,6 +24,7 @@ urlpatterns = [
     # JWT Authentication endpoints
     path('login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('register/', RegisterView.as_view(), name='register'),
 
     # User profile endpoint
     path('me/', MeView.as_view(), name='me'),

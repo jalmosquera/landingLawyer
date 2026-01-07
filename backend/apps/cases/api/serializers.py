@@ -84,6 +84,8 @@ class CaseCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = [
+            'id',
+            'case_number',
             'client',
             'assigned_to',
             'title',
@@ -93,6 +95,7 @@ class CaseCreateSerializer(serializers.ModelSerializer):
             'priority',
             'internal_notes',
         ]
+        read_only_fields = ['id', 'case_number']
 
     def validate_assigned_to(self, value):
         """Ensure assigned_to user has staff role."""

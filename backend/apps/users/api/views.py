@@ -17,7 +17,8 @@ from .serializers import (
     UserSerializer,
     UserProfileSerializer,
     PasswordResetRequestSerializer,
-    PasswordResetConfirmSerializer
+    PasswordResetConfirmSerializer,
+    RegisterSerializer
 )
 
 
@@ -203,5 +204,55 @@ class PasswordResetConfirmView(APIView):
                     {'error': 'Token inválido'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RegisterView(APIView):
+    """
+    Public endpoint for user registration.
+    Creates new users with role='client' and automatically creates a Client record.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """
+        Register a new user (client) and create associated Client record.
+        """
+        from apps.clients.models import Client
+
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+
+            # Automatically create a Client record for this user
+            Client.objects.create(
+                user=user,
+                full_name=user.name,
+                email=user.email,
+                phone=user.phone or '',
+                address=user.address or '',
+                city=user.location or '',
+                state=user.province or '',
+                notes='Cliente registrado desde el portal web',
+                created_by=None  # Self-registered, no staff creator
+            )
+
+            # Return user data
+            user_data = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'name': user.name,
+                'role': user.role,
+            }
+
+            return Response(
+                {
+                    'message': 'Usuario registrado exitosamente',
+                    'user': user_data
+                },
+                status=status.HTTP_201_CREATED
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

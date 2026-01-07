@@ -75,3 +75,46 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     """
     token = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, min_length=8)
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    """
+    Serializer for public user registration.
+    Creates new users with role='client' by default.
+    """
+    password = serializers.CharField(write_only=True, required=True, min_length=8)
+    password_confirm = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'username', 'email', 'name', 'phone',
+            'address', 'location', 'province',
+            'password', 'password_confirm'
+        ]
+
+    def validate(self, attrs):
+        """
+        Validate that passwords match.
+        """
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError({
+                'password_confirm': 'Las contraseñas no coinciden'
+            })
+        return attrs
+
+    def create(self, validated_data):
+        """
+        Create a new user with role='client'.
+        """
+        validated_data.pop('password_confirm')
+        password = validated_data.pop('password')
+
+        # Force role to client for public registration
+        validated_data['role'] = 'client'
+        validated_data['is_staff'] = False
+
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user

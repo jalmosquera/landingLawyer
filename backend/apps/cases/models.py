@@ -177,12 +177,71 @@ class Case(models.Model):
         return f"{self.case_number} - {self.title}"
 
     def save(self, *args, **kwargs):
-        """Override save to auto-close case when status changes to closed."""
+        """Override save to auto-generate case_number and handle case closure."""
+        # Auto-generate case_number if not provided
+        if not self.case_number:
+            import re
+            from django.db.models import Max
+            current_year = timezone.now().year
+
+            # Sanitize title to create a clean prefix
+            # Remove accents, special characters, and convert to uppercase
+            title_clean = self.title.upper()
+            # Replace common Spanish accented characters
+            replacements = {
+                'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+                'Ñ': 'N', 'Ü': 'U'
+            }
+            for accented, plain in replacements.items():
+                title_clean = title_clean.replace(accented, plain)
+
+            # Keep only letters and spaces, then take first words
+            title_clean = re.sub(r'[^A-Z\s]', '', title_clean)
+            # Take first 3 words or first 20 characters, whichever is shorter
+            words = title_clean.split()
+            if len(words) >= 3:
+                title_prefix = '-'.join(words[:3])
+            elif len(words) == 2:
+                title_prefix = '-'.join(words[:2])
+            else:
+                title_prefix = words[0] if words else 'CASO'
+
+            # Limit to 30 characters
+            title_prefix = title_prefix[:30]
+
+            prefix = f'{title_prefix}-CASE-{current_year}-'
+
+            # Find all case numbers with similar prefix and extract the highest number
+            # Look for any case number that ends with -CASE-{year}-XXX pattern
+            pattern_prefix = f'-CASE-{current_year}-'
+            cases_this_year = Case.objects.filter(
+                case_number__contains=pattern_prefix
+            ).values_list('case_number', flat=True)
+
+            max_number = 0
+            for case_number in cases_this_year:
+                try:
+                    # Extract the number part from the end (last 3 digits)
+                    parts = case_number.split(pattern_prefix)
+                    if len(parts) > 1:
+                        number_part = parts[-1]
+                        current_number = int(number_part)
+                        if current_number > max_number:
+                            max_number = current_number
+                except (ValueError, AttributeError, IndexError):
+                    continue
+
+            next_number = max_number + 1
+            # Format: DIVORCIO-VOLUNTARIO-CASE-2025-001
+            self.case_number = f'{prefix}{next_number:03d}'
+
+        # Auto-close case when status changes to closed
         if self.status == 'closed' and not self.closed_at:
             self.closed_at = timezone.now().date()
         elif self.status != 'closed' and self.closed_at:
             # Reopen case
             self.closed_at = None
+
         super().save(*args, **kwargs)
 
     @property

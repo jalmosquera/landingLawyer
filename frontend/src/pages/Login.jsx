@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { ArrowLeftIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import useAuthStore from '../stores/authStore';
 
 function Login() {
@@ -22,6 +23,7 @@ function Login() {
   } = useForm();
 
   const [loginError, setLoginError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -54,19 +56,32 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-light to-primary-dark py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        {/* Back button */}
+        <div className="absolute top-6 left-6">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 px-4 py-2 text-white hover:text-accent transition-colors duration-200 group"
+          >
+            <ArrowLeftIcon className="h-5 w-5 group-hover:-translate-x-1 transition-transform duration-200" />
+            <span className="font-medium">Volver al inicio</span>
+          </Link>
+        </div>
+
         {/* Header */}
         <div>
-          <Link to="/" className="flex justify-center">
-            <h1 className="text-3xl font-bold text-white">
-              LandingLawyer
-            </h1>
+          <Link to="/" className="flex justify-center mb-8">
+            <img
+              src="/logo.png"
+              alt="Landing Lawyer Logo"
+              className="h-24 sm:h-28 md:h-32 w-auto"
+            />
           </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Iniciar Sesión
           </h2>
-          <p className="mt-2 text-center text-sm text-blue-200">
+          <p className="mt-2 text-center text-sm text-gray-300">
             Ingresa tus credenciales para acceder al sistema
           </p>
         </div>
@@ -98,7 +113,7 @@ function Login() {
                 autoComplete="username"
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
                   errors.username ? 'border-red-300' : 'border-gray-300'
-                } placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                } placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm`}
                 placeholder="Ingresa tu usuario"
                 {...register('username', {
                   required: 'El usuario es requerido',
@@ -114,22 +129,35 @@ function Login() {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Contraseña
               </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                  errors.password ? 'border-red-300' : 'border-gray-300'
-                } placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
-                placeholder="••••••••"
-                {...register('password', {
-                  required: 'La contraseña es requerida',
-                  minLength: {
-                    value: 6,
-                    message: 'La contraseña debe tener al menos 6 caracteres',
-                  },
-                })}
-              />
+              <div className="relative mt-1">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  className={`appearance-none relative block w-full px-3 py-2 pr-10 border ${
+                    errors.password ? 'border-red-300' : 'border-gray-300'
+                  } placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm`}
+                  placeholder="••••••••"
+                  {...register('password', {
+                    required: 'La contraseña es requerida',
+                    minLength: {
+                      value: 6,
+                      message: 'La contraseña debe tener al menos 6 caracteres',
+                    },
+                  })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
@@ -138,7 +166,7 @@ function Login() {
             {/* Forgot Password Link */}
             <div className="flex items-center justify-between">
               <div className="text-sm">
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                <a href="#" className="font-medium text-primary hover:text-primary-light">
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>
@@ -149,7 +177,7 @@ function Login() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {isLoading ? (
                   <span className="flex items-center">
@@ -180,18 +208,21 @@ function Login() {
                 )}
               </button>
             </div>
+
+            {/* Register Link */}
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                ¿No tienes cuenta?{' '}
+                <Link
+                  to="/register"
+                  className="font-medium text-primary hover:text-primary-light transition-colors"
+                >
+                  Regístrate aquí
+                </Link>
+              </p>
+            </div>
           </div>
         </form>
-
-        {/* Back to Home */}
-        <div className="text-center">
-          <Link
-            to="/"
-            className="font-medium text-blue-200 hover:text-white transition-colors duration-200"
-          >
-            ← Volver al inicio
-          </Link>
-        </div>
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ import {
   LoadingSpinner,
   EmptyState,
   Badge,
+  RichTextEditor,
 } from '../../components/ui'
 import { clientsAPI } from '../../services/api'
 
@@ -511,12 +512,11 @@ function ClientsPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Notas Internas
                 </label>
-                <textarea
-                  name="notes"
+                <RichTextEditor
                   value={formData.notes}
-                  onChange={handleChange}
-                  rows="3"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
+                  onChange={(content) => {
+                    setFormData((prev) => ({ ...prev, notes: content }))
+                  }}
                   placeholder="Notas privadas sobre el cliente..."
                 />
               </div>

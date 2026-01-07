@@ -121,6 +121,7 @@ function AppointmentsPage() {
       in_person: 'Presencial',
       phone: 'Teléfono',
       video: 'Videollamada',
+      teams: 'Microsoft Teams',
     }
     return labels[type] || type
   }
@@ -674,6 +675,7 @@ function AppointmentsPage() {
                   <option value="in_person">Presencial</option>
                   <option value="phone">Teléfono</option>
                   <option value="video">Videollamada</option>
+                  <option value="teams">Microsoft Teams</option>
                 </select>
               </div>
 
@@ -904,6 +906,31 @@ function AppointmentsPage() {
                       <p className="text-base text-gray-900 dark:text-white">
                         {viewAppointment.location}
                       </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Microsoft Teams Link */}
+              {viewAppointment.teams_meeting_link && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5 border border-blue-200 dark:border-blue-800 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                      <VideoCameraIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                        Microsoft Teams
+                      </h4>
+                      <a
+                        href={viewAppointment.teams_meeting_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <VideoCameraIcon className="h-4 w-4" />
+                        Unirse a la reunión
+                      </a>
                     </div>
                   </div>
                 </div>
