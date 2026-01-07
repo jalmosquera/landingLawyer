@@ -11,6 +11,7 @@ import {
   BriefcaseIcon,
   DocumentTextIcon,
   CalendarIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline'
 import { Card, LoadingSpinner } from '../../components/ui'
 import useAuthStore from '../../stores/authStore'
@@ -23,6 +24,7 @@ function DashboardHome() {
     cases: 0,
     documents: 0,
     appointments: 0,
+    pendingAppointments: 0,
   })
   const [loading, setLoading] = useState(true)
 
@@ -42,11 +44,18 @@ function DashboardHome() {
         appointmentsAPI.getAll().catch(() => ({ data: { results: [] } })),
       ])
 
+      // Count pending appointments
+      const allAppointments = appointmentsRes.data.results || appointmentsRes.data || []
+      const pendingCount = Array.isArray(allAppointments)
+        ? allAppointments.filter(apt => apt.status === 'pending').length
+        : 0
+
       setStats({
         clients: clientsRes.data.results?.length || clientsRes.data.count || 0,
         cases: casesRes.data.results?.length || casesRes.data.count || 0,
         documents: documentsRes.data.results?.length || documentsRes.data.count || 0,
         appointments: appointmentsRes.data.results?.length || appointmentsRes.data.count || 0,
+        pendingAppointments: pendingCount,
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
@@ -105,6 +114,41 @@ function DashboardHome() {
           Aquí tienes un resumen de tu despacho
         </p>
       </div>
+
+      {/* Pending appointments alert */}
+      {stats.pendingAppointments > 0 && (
+        <Link to="/dashboard/appointments?status=pending" className="block mb-6">
+          <Card className="border-l-4 border-accent bg-accent/5 dark:bg-accent/10 hover:bg-accent/10 dark:hover:bg-accent/20 transition-colors">
+            <div className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="rounded-full bg-accent p-3">
+                      <ClockIcon className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Citas por Aprobar
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Tienes {stats.pendingAppointments} solicitud{stats.pendingAppointments !== 1 ? 'es' : ''} de cita{stats.pendingAppointments !== 1 ? 's' : ''} pendiente{stats.pendingAppointments !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+                <div className="hidden sm:flex items-center">
+                  <span className="text-3xl font-bold text-accent mr-4">
+                    {stats.pendingAppointments}
+                  </span>
+                  <span className="text-accent font-medium">
+                    Ver →
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">

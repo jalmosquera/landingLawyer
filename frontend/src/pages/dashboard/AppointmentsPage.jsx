@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   PlusIcon,
   CalendarIcon,
@@ -31,6 +32,7 @@ import {
 import { appointmentsAPI, clientsAPI, casesAPI } from '../../services/api'
 
 function AppointmentsPage() {
+  const location = useLocation()
   const [appointments, setAppointments] = useState([])
   const [clients, setClients] = useState([])
   const [cases, setCases] = useState([])
@@ -60,6 +62,15 @@ function AppointmentsPage() {
   })
   const [formErrors, setFormErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Check URL params for initial status filter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const status = params.get('status')
+    if (status && ['pending', 'confirmed', 'cancelled', 'completed'].includes(status)) {
+      setStatusFilter(status)
+    }
+  }, [location.search])
 
   useEffect(() => {
     fetchData()
@@ -160,9 +171,63 @@ function AppointmentsPage() {
   const handleOpenModal = (appointment = null) => {
     if (appointment) {
       setSelectedAppointment(appointment)
+
+      // Debug: Log appointment data
+      console.log('Opening appointment for edit:', appointment)
+      console.log('Client value:', appointment.client)
+      console.log('Client data:', appointment.client_data)
+      console.log('Client type:', typeof appointment.client)
+      console.log('Is public request:', appointment.is_public_request)
+      console.log('Requested by name:', appointment.requested_by_name)
+
+      // Extract client ID - handle multiple cases:
+      // 1. client is null (public request) -> try to find matching client by name
+      // 2. client is a number (ID) -> use it
+      // 3. client is an object -> extract id
+      // 4. client_data exists -> extract id from there
+      let clientId = null
+      if (appointment.client !== null && appointment.client !== undefined) {
+        clientId = typeof appointment.client === 'object'
+          ? appointment.client?.id
+          : appointment.client
+      } else if (appointment.client_data) {
+        clientId = appointment.client_data.id
+      } else if (appointment.requested_by_name) {
+        // No client assigned but has requested_by_name -> try to find matching client
+        console.log('Searching for client with name:', appointment.requested_by_name)
+        const matchingClient = clients.find(
+          c => c.full_name?.toLowerCase() === appointment.requested_by_name?.toLowerCase()
+        )
+        if (matchingClient) {
+          clientId = matchingClient.id
+          console.log('✅ Found matching client by name:', matchingClient.full_name, 'ID:', clientId)
+        } else {
+          console.log('❌ No matching client found for name:', appointment.requested_by_name)
+          console.log('Available client names:', clients.map(c => c.full_name))
+        }
+      }
+
+      // Extract case ID - same logic
+      let caseId = null
+      if (appointment.case !== null && appointment.case !== undefined) {
+        caseId = typeof appointment.case === 'object'
+          ? appointment.case?.id
+          : appointment.case
+      } else if (appointment.case_data) {
+        caseId = appointment.case_data.id
+      }
+
+      // Convert to string for select compatibility
+      const clientIdString = clientId ? String(clientId) : ''
+      const caseIdString = caseId ? String(caseId) : ''
+
+      console.log('Extracted client ID:', clientId, '-> String:', clientIdString)
+      console.log('Extracted case ID:', caseId, '-> String:', caseIdString)
+      console.log('Available clients:', clients.map(c => ({ id: c.id, name: c.full_name })))
+
       setFormData({
-        client: appointment.client?.id || appointment.client || '',
-        case: appointment.case?.id || appointment.case || '',
+        client: clientIdString,
+        case: caseIdString,
         starts_at: appointment.starts_at
           ? new Date(appointment.starts_at).toISOString().slice(0, 16)
           : '',
@@ -547,6 +612,13 @@ function AppointmentsPage() {
                     + Crear Cliente
                   </button>
                 </div>
+                {selectedAppointment?.is_public_request && !formData.client && (
+                  <div className="mb-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs text-yellow-800 dark:text-yellow-300">
+                    <strong>Solicitud pública:</strong> {selectedAppointment.requested_by_name || 'Sin nombre'} ({selectedAppointment.requested_by_email || 'Sin email'})
+                    <br />
+                    <span className="text-yellow-700 dark:text-yellow-400">Asigna un cliente a esta cita</span>
+                  </div>
+                )}
                 <select
                   name="client"
                   value={formData.client}
