@@ -294,7 +294,8 @@ function AppointmentsPage() {
 
   const validateForm = () => {
     const errors = {}
-    if (!formData.client) {
+    // Client is only required for new appointments, not when editing public requests
+    if (!formData.client && !selectedAppointment) {
       errors.client = 'Debe seleccionar un cliente'
     }
     if (!formData.starts_at) {
@@ -597,12 +598,51 @@ function AppointmentsPage() {
               </div>
             )}
 
+            {/* Public Request Info - Show prominent info if no client */}
+            {selectedAppointment && !formData.client && selectedAppointment.requested_by_name && (
+              <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-2 border-blue-300 dark:border-blue-700 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-bold text-blue-900 dark:text-blue-300 mb-2 uppercase tracking-wide">
+                      Solicitud Pública
+                    </h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-blue-800 dark:text-blue-200">Nombre:</span>
+                        <span className="text-blue-900 dark:text-blue-100 font-medium text-base">{selectedAppointment.requested_by_name}</span>
+                      </div>
+                      {selectedAppointment.requested_by_email && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-blue-800 dark:text-blue-200">Email:</span>
+                          <span className="text-blue-900 dark:text-blue-100">{selectedAppointment.requested_by_email}</span>
+                        </div>
+                      )}
+                      {selectedAppointment.requested_by_phone && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-blue-800 dark:text-blue-200">Teléfono:</span>
+                          <span className="text-blue-900 dark:text-blue-100">{selectedAppointment.requested_by_phone}</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-blue-700 dark:text-blue-400 mt-2 italic">
+                      Puedes cambiar el estado de esta cita sin asignar un cliente, o asignar uno abajo si está disponible.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Client */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Cliente *
+                    Cliente {selectedAppointment ? '(Opcional)' : '*'}
                   </label>
                   <button
                     type="button"
@@ -612,13 +652,6 @@ function AppointmentsPage() {
                     + Crear Cliente
                   </button>
                 </div>
-                {selectedAppointment?.is_public_request && !formData.client && (
-                  <div className="mb-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs text-yellow-800 dark:text-yellow-300">
-                    <strong>Solicitud pública:</strong> {selectedAppointment.requested_by_name || 'Sin nombre'} ({selectedAppointment.requested_by_email || 'Sin email'})
-                    <br />
-                    <span className="text-yellow-700 dark:text-yellow-400">Asigna un cliente a esta cita</span>
-                  </div>
-                )}
                 <select
                   name="client"
                   value={formData.client}
