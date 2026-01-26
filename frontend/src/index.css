@@ -97,6 +97,25 @@
   }
 
   /* React DatePicker Custom Styles */
+  .calendar-fullwidth {
+    width: 100%;
+  }
+
+  .calendar-fullwidth .react-datepicker-wrapper,
+  .calendar-fullwidth .react-datepicker__input-container,
+  .calendar-fullwidth .react-datepicker--inline,
+  .calendar-fullwidth .react-datepicker,
+  .calendar-fullwidth .react-datepicker__month-container,
+  .calendar-fullwidth .react-datepicker__header,
+  .calendar-fullwidth .react-datepicker__month {
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .calendar-fullwidth .react-datepicker__month-container {
+    float: none !important;
+  }
+
   .react-datepicker-wrapper {
     width: 100%;
     display: block;
@@ -114,7 +133,14 @@
     border-radius: 0.75rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     padding: 1.5rem;
-    width: 100%;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  .react-datepicker__month-container {
+    width: 100% !important;
+    float: none !important;
   }
 
   .react-datepicker__triangle {
@@ -122,10 +148,15 @@
   }
 
   .react-datepicker__header {
+    width: 100% !important;
     background-color: transparent;
     border-bottom: none;
     padding-bottom: 0.5rem;
     padding-top: 0;
+  }
+
+  .react-datepicker__month {
+    width: 100% !important;
   }
 
   .react-datepicker__current-month {

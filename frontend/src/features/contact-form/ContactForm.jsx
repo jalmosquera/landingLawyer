@@ -51,7 +51,8 @@ function ContactForm() {
       )
 
       const dates = response.data.available_dates || []
-      setAvailableDates(dates.map(d => new Date(d.date + 'T00:00:00')))
+      const parsedDates = dates.map(d => new Date(d.date + 'T12:00:00'))
+      setAvailableDates(parsedDates)
     } catch (error) {
       console.error('Error fetching available dates:', error)
       setAvailableDates([])
@@ -63,7 +64,11 @@ function ContactForm() {
   const fetchAvailableSlots = async (date) => {
     try {
       setLoadingSlots(true)
-      const dateStr = date.toISOString().split('T')[0]
+      // Use local date to avoid timezone issues
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${year}-${month}-${day}`
 
       const response = await axios.get(
         `${API_BASE_URL}/public/appointments/available-slots/`,
@@ -93,7 +98,6 @@ function ContactForm() {
       setAvailableSlots(uniqueSlots)
       setSelectedSlot(null)
     } catch (error) {
-      console.error('Error fetching available slots:', error)
       setAvailableSlots([])
     } finally {
       setLoadingSlots(false)
@@ -332,7 +336,7 @@ function ContactForm() {
                   Cargando fechas disponibles...
                 </div>
               ) : (
-                <div className="flex justify-center items-center">
+                <div className="calendar-fullwidth">
                   <DatePicker
                     selected={selectedDate}
                     onChange={(date) => setSelectedDate(date)}
