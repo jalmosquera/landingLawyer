@@ -12,7 +12,7 @@ function Header() {
     { label: "Inicio", href: "#home" },
     { label: "Acerca de nosotros", href: "#about" },
     { label: "Areas de experiencia", href: "#practice-areas" },
-    { label: "Testimonios", href: "#testimonials" },
+    //    { label: "Testimonios", href: "#testimonials" },
     { label: "Contacto", href: "#contact" },
   ];
 
@@ -268,7 +268,7 @@ function Header() {
             )}
 
             <button className="btn-accent w-full mt-3">
-              Free Consultation
+              Consulta Gratuita
             </button>
           </div>
         </div>
