@@ -131,7 +131,9 @@
     background-color: white;
     border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
     padding: 1.5rem;
     width: 100% !important;
     display: flex !important;
@@ -292,7 +294,8 @@
     top: 6px;
   }
 
-  .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  .react-datepicker__navigation:hover
+    .react-datepicker__navigation-icon::before {
     border-color: #013048;
   }
 
@@ -365,7 +368,9 @@
     background-color: #e09a1f;
   }
 
-  .dark .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  .dark
+    .react-datepicker__navigation:hover
+    .react-datepicker__navigation-icon::before {
     border-color: white;
   }
 }

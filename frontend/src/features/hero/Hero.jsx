@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import WaveDivider from "../../components/WaveDivider";
 
 function Hero() {
-  const desktopImages = ["/landing.jpg", "/img2.jpg", "/img3.jpg"];
+  const desktopImages = [
+    "/landing.jpg",
+    "/img2.jpg",
+    "/img3.jpg",
+    "/img4.jpeg",
+  ];
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -34,6 +39,7 @@ function Hero() {
             "78% 0%", // landing.jpg
             "50% 18%", // img2.jpg
             "50% 12%", // img3.jpg
+            "50% 12%", // img4.jpeg
           ];
 
           return (

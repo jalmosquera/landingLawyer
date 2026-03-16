@@ -17,22 +17,22 @@ function Header() {
   ];
 
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    document.body.style.overflow = isMenuOpen ? "hidden" : "unset";
   }, [isMenuOpen]);
 
   return (
     <>
-      <header className="bg-primary text-white shadow-lg sticky top-0 z-50">
-        <nav className="container mx-auto px-4 py-4">
+      <header className="relative bg-primary text-white shadow-lg sticky top-0 z-50">
+        <nav className="container mx-auto px-4 pt-4 pb-8 md:pb-10">
           <div className="flex justify-between items-center">
             {/* Logo */}
             <div className="flex items-center">
               <div className="text-2xl font-bold">
-                <img className="w-32 h-auto" src="/logo.png" alt="" />
+                <img
+                  className="w-32 h-auto"
+                  src="/logo.png"
+                  alt="Eduardo Bernal Abogado"
+                />
               </div>
             </div>
 
@@ -52,7 +52,6 @@ function Header() {
             {/* Contact Button */}
             <div className="hidden md:flex items-center space-x-4">
               {user ? (
-                // Usuario logueado
                 <button
                   onClick={() =>
                     navigate(
@@ -67,7 +66,6 @@ function Header() {
                   <span className="font-medium">{user.name}</span>
                 </button>
               ) : (
-                // Usuario no logueado
                 <>
                   <button
                     onClick={() => navigate("/login")}
@@ -86,7 +84,7 @@ function Header() {
               <button className="btn-accent">Free Consultation</button>
             </div>
 
-            {/* Mobile Menu Button - Hamburger */}
+            {/* Mobile Menu Button */}
             <button
               className="md:hidden relative w-8 h-8 flex flex-col justify-center items-center focus:outline-none group"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -110,6 +108,20 @@ function Header() {
             </button>
           </div>
         </nav>
+
+        {/* Curva inferior desktop */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none hidden md:block">
+          <svg
+            viewBox="0 0 1440 90"
+            preserveAspectRatio="none"
+            className="w-full h-[38px]"
+          >
+            <path
+              d="M0,20 C260,90 1180,0 1440,45 L1440,0 L0,0 Z"
+              fill="#023048"
+            />
+          </svg>
+        </div>
       </header>
 
       {/* Overlay */}
@@ -130,12 +142,14 @@ function Header() {
         <div className="flex-1 bg-primary flex flex-col">
           {/* Header inside menu */}
           <div className="px-6 py-4 flex justify-between items-center">
-            {/* Logo */}
             <div className="text-2xl font-bold">
-              <span className="text-accent">Law</span> Firm
+              <img
+                className="w-28 h-auto"
+                src="/logo.png"
+                alt="Eduardo Bernal Abogado"
+              />
             </div>
 
-            {/* Close Button */}
             <button
               className="relative w-8 h-8 flex flex-col justify-center items-center focus:outline-none"
               onClick={() => setIsMenuOpen(false)}
@@ -214,8 +228,8 @@ function Header() {
             >
               info@lawfirm.com
             </a>
+
             {user ? (
-              // Usuario logueado
               <button
                 onClick={() => {
                   navigate(
@@ -231,7 +245,6 @@ function Header() {
                 <span className="font-semibold">{user.name}</span>
               </button>
             ) : (
-              // Usuario no logueado
               <>
                 <button
                   onClick={() => {
@@ -253,6 +266,7 @@ function Header() {
                 </button>
               </>
             )}
+
             <button className="btn-accent w-full mt-3">
               Free Consultation
             </button>
