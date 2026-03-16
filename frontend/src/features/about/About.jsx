@@ -59,36 +59,63 @@ function About() {
               Eduardo Bernal Fernández
             </h3>
 
-            <p className="text-sm text-gray-600 mb-4">
-              Colegiado Nº 4941 - Ilustre Colegio de Abogados de Málaga (ICAMA)
+            <p className="text-sm text-gray-600 mb-6">
+              Colegiado Nº 4941 – Ilustre Colegio de Abogados de Málaga (ICAMA)
             </p>
 
-            <p className="text-gray-700 mb-4">
-              Abogado en ejercicio perteneciente al Ilustre Colegio de Abogados
-              de Málaga. En el ejercicio de la Abogacía, siempre en el sector
-              privado, si bien ha contado con clientes institucionales y
-              entidades públicas; desarrolla su quehacer tanto en la faceta
-              judicial compareciendo en representación y defensa de los
-              intereses de sus clientes, en los órdenes y ante los Tribunales
-              Penales, Civiles y Contencioso-Administrativos, tanto de Málaga,
-              Ronda, Antequera, Coín, Sevilla y Madrid, preferentemente; como en
-              la faceta extrajudicial, prioritariamente, en el sector
-              inmobiliario y especialmente en asuntos de naturaleza negocial.
+            <p className="text-gray-700 text-justify mb-4">
+              Con más de 25 años de experiencia en el ejercicio de la abogacía,
+              me dedico a desarrollar mi actividad profesional asesorando y
+              representando a particulares, empresas e instituciones en materias
+              de Derecho Civil, Penal y Contencioso-Administrativo, tanto en el
+              ámbito judicial como en el extrajudicial.
             </p>
 
-            <p className="text-gray-700 mb-4">
-              Desarrolla dicha profesión, de forma exclusiva, desde hace más de
-              25 años, siendo distinguido por el Ilustre Colegio de Abogados de
-              Málaga, por dicha razón, el pasado 21 de octubre de 2025. Acreedor
-              de una mención de su Colegio Profesional por haber participado,
-              siendo miembro de este, y a la vez concejal del Ayuntamiento de
-              Ardales en defensa de los intereses democráticos imperantes en
-              nuestro sistema político, social y judicial.
+            <p className="text-gray-700 text-justify mb-4">
+              A lo largo de mi trayectoria e participado en numerosos
+              procedimientos ante distintos órganos jurisdiccionales, así como
+              en el asesoramiento jurídico de operaciones empresariales y
+              proyectos de desarrollo de especial complejidad, aportando
+              seguridad jurídica, análisis estratégico y soluciones legales
+              adaptadas a cada situación.
             </p>
 
-            <p className="text-gray-700">
-              Cuenta con numerosos cursos de especialización en diferentes
-              materias propias de su profesión como Derecho Notarial u Oratoria.
+            <p className="text-gray-700 text-justify mb-4">
+              Entre los proyectos de mayor relevancia en los que e intervenido
+              destaco por mi participación en el asesoramiento jurídico del
+              proyecto Natura Park Carratraca, una iniciativa de carácter
+              turístico, educativo y medioambiental concebida para el desarrollo
+              de un complejo de divulgación científica y conservación de la
+              naturaleza en la provincia de Málaga.
+            </p>
+
+            <p className="text-gray-700 text-justify mb-4">
+              En el marco de este proyecto, mi labor se ha centrado en el
+              análisis legal, la estructuración jurídica y la viabilidad
+              administrativa, abordando aspectos relacionados con la normativa
+              urbanística, administrativa y empresarial.
+            </p>
+
+            <p className="text-gray-700 text-justify mb-4">
+              Mi ejercicio profesional se caracteriza por un enfoque riguroso,
+              estratégico y orientado a la defensa eficaz de los intereses de
+              mis clientes, combinando la experiencia procesal ante los
+              tribunales con el asesoramiento preventivo en proyectos
+              empresariales e institucionales.
+            </p>
+
+            <p className="text-gray-700 text-justify mb-4">
+              Además de mi actividad profesional, e participado activamente en
+              la vida pública local, habiendo desempeñado responsabilidades en
+              el Ayuntamiento de Ardales, siempre en defensa del interés general
+              y del desarrollo social y económico de su entorno.
+            </p>
+
+            <p className="text-gray-700 text-justify">
+              Cuento asimismo con formación complementaria en materias como
+              Derecho Notarial y Oratoria Jurídica, que refuerzan mi capacidad
+              de análisis, argumentación y representación en el ejercicio de la
+              profesión.
             </p>
           </div>
         </div>
@@ -98,9 +125,11 @@ function About() {
           <h3 className="text-3xl font-bold text-primary text-center mb-12">
             Nuestros Valores
           </h3>
+
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {values.map((value, index) => {
               const IconComponent = value.icon;
+
               return (
                 <div
                   key={index}
