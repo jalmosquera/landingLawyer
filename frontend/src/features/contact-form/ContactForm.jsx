@@ -1,219 +1,258 @@
-import { useState, useEffect, useRef } from 'react'
-import DatePicker, { registerLocale } from 'react-datepicker'
-import { es } from 'date-fns/locale'
-import axios from 'axios'
-import 'react-datepicker/dist/react-datepicker.css'
+import { useState, useEffect, useRef } from "react";
+import DatePicker, { registerLocale } from "react-datepicker";
+import { es } from "date-fns/locale";
+import { appointmentsAPI } from "../../services/api";
+import "react-datepicker/dist/react-datepicker.css";
 
-registerLocale('es', es)
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+registerLocale("es", es);
 
 function ContactForm() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    message: '',
-  })
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
 
-  const [selectedDate, setSelectedDate] = useState(null)
-  const [selectedSlot, setSelectedSlot] = useState(null)
-  const [availableDates, setAvailableDates] = useState([])
-  const [availableSlots, setAvailableSlots] = useState([])
-  const [loadingDates, setLoadingDates] = useState(false)
-  const [loadingSlots, setLoadingSlots] = useState(false)
-  const [errors, setErrors] = useState({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitSuccess, setSubmitSuccess] = useState(false)
-  const messageRef = useRef(null)
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [availableDates, setAvailableDates] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingDates, setLoadingDates] = useState(false);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const messageRef = useRef(null);
 
   // Fetch available dates on mount
   useEffect(() => {
-    fetchAvailableDates()
-  }, [])
+    fetchAvailableDates();
+  }, []);
 
   // Fetch slots when date changes
   useEffect(() => {
     if (selectedDate) {
-      fetchAvailableSlots(selectedDate)
+      fetchAvailableSlots(selectedDate);
     } else {
-      setAvailableSlots([])
-      setSelectedSlot(null)
+      setAvailableSlots([]);
+      setSelectedSlot(null);
     }
-  }, [selectedDate])
+  }, [selectedDate]);
 
   const fetchAvailableDates = async () => {
     try {
-      setLoadingDates(true)
-      const response = await axios.get(
-        `${API_BASE_URL}/public/appointments/available-dates/`,
-        { params: { duration: 60, days_ahead: 60 } }
-      )
+      setLoadingDates(true);
 
-      const dates = response.data.available_dates || []
-      const parsedDates = dates.map(d => new Date(d.date + 'T12:00:00'))
-      setAvailableDates(parsedDates)
+      const response = await appointmentsAPI.public.availableSlots({
+        duration: 60,
+        days_ahead: 60,
+      });
+
+      const slots = response.data.slots || response.data.results || [];
+
+      const uniqueDatesMap = new Map();
+
+      slots.forEach((slot) => {
+        const rawDate = slot.date || slot.start_time;
+        if (!rawDate) return;
+
+        const dateObj = new Date(rawDate);
+        const key = dateObj.toDateString();
+
+        if (!uniqueDatesMap.has(key)) {
+          uniqueDatesMap.set(
+            key,
+            new Date(
+              dateObj.getFullYear(),
+              dateObj.getMonth(),
+              dateObj.getDate(),
+              12,
+              0,
+              0,
+            ),
+          );
+        }
+      });
+
+      setAvailableDates(Array.from(uniqueDatesMap.values()));
     } catch (error) {
-      console.error('Error fetching available dates:', error)
-      setAvailableDates([])
+      console.error("Error fetching available dates:", error);
+      setAvailableDates([]);
     } finally {
-      setLoadingDates(false)
+      setLoadingDates(false);
     }
-  }
+  };
 
   const fetchAvailableSlots = async (date) => {
     try {
-      setLoadingSlots(true)
+      setLoadingSlots(true);
+
       // Use local date to avoid timezone issues
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      const dateStr = `${year}-${month}-${day}`
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${day}`;
 
-      const response = await axios.get(
-        `${API_BASE_URL}/public/appointments/available-slots/`,
-        { params: { date: dateStr, duration: 60 } }
-      )
+      const response = await appointmentsAPI.public.availableSlots({
+        date: dateStr,
+        duration: 60,
+      });
 
-      const allSlots = response.data.slots || []
+      const allSlots = response.data.slots || response.data.results || [];
 
       // Group slots by time to avoid duplicates
-      const groupedSlots = {}
-      allSlots.forEach(slot => {
-        if (slot.available) {
-          const timeKey = slot.start_time
-          if (!groupedSlots[timeKey]) {
-            groupedSlots[timeKey] = { ...slot, lawyers: [] }
-          }
-          if (slot.lawyer_id) {
-            groupedSlots[timeKey].lawyers.push({
-              id: slot.lawyer_id,
-              name: slot.lawyer_name
-            })
-          }
-        }
-      })
+      const groupedSlots = {};
+      allSlots.forEach((slot) => {
+        if (slot.available === false) return;
 
-      const uniqueSlots = Object.values(groupedSlots)
-      setAvailableSlots(uniqueSlots)
-      setSelectedSlot(null)
+        const timeKey = slot.start_time;
+        if (!timeKey) return;
+
+        if (!groupedSlots[timeKey]) {
+          groupedSlots[timeKey] = { ...slot, lawyers: [] };
+        }
+
+        if (slot.lawyer_id) {
+          groupedSlots[timeKey].lawyers.push({
+            id: slot.lawyer_id,
+            name: slot.lawyer_name,
+          });
+        }
+      });
+
+      const uniqueSlots = Object.values(groupedSlots);
+      setAvailableSlots(uniqueSlots);
+      setSelectedSlot(null);
     } catch (error) {
-      setAvailableSlots([])
+      console.error("Error fetching available slots:", error);
+      setAvailableSlots([]);
     } finally {
-      setLoadingSlots(false)
+      setLoadingSlots(false);
     }
-  }
+  };
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
+
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
-        [name]: '',
-      }))
+        [name]: "",
+      }));
     }
-  }
+  };
 
   const handleSlotSelect = (slot) => {
-    setSelectedSlot(slot)
+    setSelectedSlot(slot);
+
     if (errors.slot) {
-      setErrors((prev) => ({ ...prev, slot: '' }))
+      setErrors((prev) => ({ ...prev, slot: "" }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors = {}
+    const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'El nombre es requerido'
+      newErrors.name = "El nombre es requerido";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'El email es requerido'
+      newErrors.email = "El email es requerido";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'El email no es válido'
+      newErrors.email = "El email no es válido";
     }
 
     if (!selectedDate) {
-      newErrors.date = 'Debe seleccionar una fecha'
+      newErrors.date = "Debe seleccionar una fecha";
     }
 
     if (!selectedSlot) {
-      newErrors.slot = 'Debe seleccionar un horario'
+      newErrors.slot = "Debe seleccionar un horario";
     }
 
-    return newErrors
-  }
+    return newErrors;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    const newErrors = validateForm()
+    e.preventDefault();
+    const newErrors = validateForm();
 
     if (Object.keys(newErrors).length === 0) {
-      setIsSubmitting(true)
-      setErrors({})
+      setIsSubmitting(true);
+      setErrors({});
 
       try {
-        await axios.post(`${API_BASE_URL}/public/appointments/request/`, {
+        await appointmentsAPI.public.request({
           requested_by_name: formData.name,
           requested_by_email: formData.email,
-          requested_by_phone: formData.phone || '',
+          requested_by_phone: formData.phone || "",
           starts_at: selectedSlot.start_time,
           ends_at: selectedSlot.end_time,
-          message: formData.message || '',
-        })
+          message: formData.message || "",
+        });
 
-        setSubmitSuccess(true)
-        setFormData({ name: '', email: '', phone: '', message: '' })
-        setSelectedDate(null)
-        setSelectedSlot(null)
+        setSubmitSuccess(true);
+        setFormData({ name: "", email: "", phone: "", message: "" });
+        setSelectedDate(null);
+        setSelectedSlot(null);
+        setAvailableSlots([]);
 
         // Scroll to message
         setTimeout(() => {
-          messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }, 100)
+          messageRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }, 100);
 
         // Reset success message after 10 seconds
         setTimeout(() => {
-          setSubmitSuccess(false)
-        }, 10000)
+          setSubmitSuccess(false);
+        }, 10000);
       } catch (error) {
-        console.error('Error submitting appointment request:', error)
+        console.error("Error submitting appointment request:", error);
         setErrors({
-          submit: error.response?.data?.message ||
-                  error.response?.data?.non_field_errors?.[0] ||
-                  'Hubo un error al solicitar la cita. Por favor, inténtelo de nuevo.'
-        })
+          submit:
+            error.response?.data?.detail ||
+            error.response?.data?.message ||
+            error.response?.data?.non_field_errors?.[0] ||
+            "Hubo un error al solicitar la cita. Por favor, inténtelo de nuevo.",
+        });
 
         // Scroll to error message
         setTimeout(() => {
-          messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }, 100)
+          messageRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }, 100);
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     } else {
-      setErrors(newErrors)
+      setErrors(newErrors);
     }
-  }
+  };
 
   const formatTime = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("es-ES", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const isDateAvailable = (date) => {
     return availableDates.some(
-      availDate => availDate.toDateString() === date.toDateString()
-    )
-  }
+      (availDate) => availDate.toDateString() === date.toDateString(),
+    );
+  };
 
   return (
     <section id="contact" className="py-20 bg-primary text-white">
@@ -224,8 +263,8 @@ function ContactForm() {
               Agende su Consulta Gratuita
             </h2>
             <p className="text-xl">
-              Seleccione fecha y hora disponible para su consulta por Microsoft Teams.
-              Le responderemos a la brevedad posible.
+              Seleccione fecha y hora disponible para su consulta por Microsoft
+              Teams. Le responderemos a la brevedad posible.
             </p>
           </div>
 
@@ -233,7 +272,6 @@ function ContactForm() {
             onSubmit={handleSubmit}
             className="bg-white text-gray-800 rounded-xl shadow-2xl p-8"
           >
-            {/* Success Message */}
             {submitSuccess && (
               <div
                 ref={messageRef}
@@ -244,7 +282,8 @@ function ContactForm() {
                   ¡Solicitud de Cita Enviada con Éxito!
                 </p>
                 <p className="text-sm mt-2">
-                  Recibirá un correo electrónico de confirmación pronto con los detalles de su cita por Microsoft Teams.
+                  Recibirá un correo electrónico de confirmación pronto con los
+                  detalles de su cita por Microsoft Teams.
                 </p>
                 <p className="text-sm mt-1 font-semibold">
                   Revise su bandeja de entrada y spam.
@@ -252,7 +291,6 @@ function ContactForm() {
               </div>
             )}
 
-            {/* General Error Message */}
             {errors.submit && (
               <div
                 ref={messageRef}
@@ -267,9 +305,11 @@ function ContactForm() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Name Field */}
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-semibold mb-2"
+                >
                   Nombre Completo *
                 </label>
                 <input
@@ -279,7 +319,7 @@ function ContactForm() {
                   value={formData.name}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
+                    errors.name ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="Juan Pérez"
                 />
@@ -288,9 +328,11 @@ function ContactForm() {
                 )}
               </div>
 
-              {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold mb-2"
+                >
                   Correo Electrónico *
                 </label>
                 <input
@@ -300,7 +342,7 @@ function ContactForm() {
                   value={formData.email}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                    errors.email ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="juan@ejemplo.com"
                 />
@@ -310,9 +352,11 @@ function ContactForm() {
               </div>
             </div>
 
-            {/* Phone Field */}
             <div className="mb-6">
-              <label htmlFor="phone" className="block text-sm font-semibold mb-2">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-semibold mb-2"
+              >
                 Número de Teléfono (Opcional)
               </label>
               <input
@@ -326,7 +370,6 @@ function ContactForm() {
               />
             </div>
 
-            {/* Date Selection */}
             <div className="mb-6">
               <label className="block text-sm font-semibold mb-2">
                 Seleccione una Fecha *
@@ -353,7 +396,6 @@ function ContactForm() {
               )}
             </div>
 
-            {/* Time Slot Selection */}
             {selectedDate && (
               <div className="mb-6">
                 <label className="block text-sm font-semibold mb-2">
@@ -372,8 +414,8 @@ function ContactForm() {
                         onClick={() => handleSlotSelect(slot)}
                         className={`p-3 rounded-lg border-2 font-medium transition-all ${
                           selectedSlot?.start_time === slot.start_time
-                            ? 'border-accent bg-accent text-white'
-                            : 'border-gray-300 hover:border-accent hover:bg-accent/10'
+                            ? "border-accent bg-accent text-white"
+                            : "border-gray-300 hover:border-accent hover:bg-accent/10"
                         }`}
                       >
                         {formatTime(slot.start_time)}
@@ -391,9 +433,11 @@ function ContactForm() {
               </div>
             )}
 
-            {/* Message Field */}
             <div className="mb-6">
-              <label htmlFor="message" className="block text-sm font-semibold mb-2">
+              <label
+                htmlFor="message"
+                className="block text-sm font-semibold mb-2"
+              >
                 Describa brevemente su caso (Opcional)
               </label>
               <textarea
@@ -407,15 +451,14 @@ function ContactForm() {
               ></textarea>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isSubmitting}
               className={`w-full btn-accent text-lg py-4 ${
-                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                isSubmitting ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
-              {isSubmitting ? 'Enviando Solicitud...' : 'Solicitar Cita'}
+              {isSubmitting ? "Enviando Solicitud..." : "Solicitar Cita"}
             </button>
 
             <p className="text-sm text-gray-500 text-center mt-4">
@@ -425,7 +468,7 @@ function ContactForm() {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
-export default ContactForm
+export default ContactForm;

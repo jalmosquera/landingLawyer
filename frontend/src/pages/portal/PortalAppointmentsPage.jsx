@@ -4,7 +4,7 @@
  * Allows clients to view their appointments.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 import {
   CalendarIcon,
   ClockIcon,
@@ -13,275 +13,296 @@ import {
   VideoCameraIcon,
   UserIcon,
   PlusIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'
-import { Card, LoadingSpinner, Badge, EmptyState, Button, Modal } from '../../components/ui'
-import { portalAPI } from '../../services/api'
-import axios from 'axios'
-import useAuthStore from '../../stores/authStore'
-import DatePicker, { registerLocale } from 'react-datepicker'
-import { es } from 'date-fns/locale'
-import 'react-datepicker/dist/react-datepicker.css'
+} from "@heroicons/react/24/outline";
+import {
+  Card,
+  LoadingSpinner,
+  Badge,
+  EmptyState,
+  Button,
+  Modal,
+} from "../../components/ui";
+import { portalAPI, appointmentsAPI } from "../../services/api";
+import useAuthStore from "../../stores/authStore";
+import DatePicker, { registerLocale } from "react-datepicker";
+import { es } from "date-fns/locale";
+import "react-datepicker/dist/react-datepicker.css";
 
 // Registrar el locale español
-registerLocale('es', es)
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+registerLocale("es", es);
 
 function PortalAppointmentsPage() {
-  const { user } = useAuthStore()
-  const [loading, setLoading] = useState(true)
-  const [appointments, setAppointments] = useState([])
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [timeFilter, setTimeFilter] = useState('upcoming')
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [timeFilter, setTimeFilter] = useState("upcoming");
 
   // Request modal states
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(null)
-  const [availableDates, setAvailableDates] = useState([])
-  const [availableSlots, setAvailableSlots] = useState([])
-  const [loadingSlots, setLoadingSlots] = useState(false)
-  const [selectedSlot, setSelectedSlot] = useState(null)
-  const [requestMessage, setRequestMessage] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [availableDates, setAvailableDates] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [requestMessage, setRequestMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
-      setLoading(true)
-      const response = await portalAPI.appointments.list().catch(() => ({ data: [] }))
-      setAppointments(response.data.results || response.data || [])
+      setLoading(true);
+      const response = await portalAPI.appointments
+        .list()
+        .catch(() => ({ data: [] }));
+      setAppointments(response.data.results || response.data || []);
     } catch (error) {
-      console.error('Error fetching appointments:', error)
+      console.error("Error fetching appointments:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Fetch available dates when modal opens
   const fetchAvailableDates = async () => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/public/appointments/available-dates/`,
-        {
-          params: {
-            duration: 60,
-            days_ahead: 60,
-          },
+      const response = await appointmentsAPI.public.availableSlots({
+        duration: 60,
+        days_ahead: 60,
+      });
+
+      // Intenta extraer fechas únicas a partir de los slots recibidos
+      const slots = response.data.slots || response.data.results || [];
+      const uniqueDatesMap = new Map();
+
+      slots.forEach((slot) => {
+        const rawDate = slot.date || slot.start_time;
+        if (!rawDate) return;
+
+        const dateObj = new Date(rawDate);
+        const key = dateObj.toDateString();
+
+        if (!uniqueDatesMap.has(key)) {
+          uniqueDatesMap.set(key, dateObj);
         }
-      )
-      // Convert date strings to Date objects
-      const dates = (response.data.available_dates || []).map((item) => new Date(item.date))
-      setAvailableDates(dates)
+      });
+
+      setAvailableDates(Array.from(uniqueDatesMap.values()));
     } catch (error) {
-      console.error('Error fetching available dates:', error)
+      console.error("Error fetching available dates:", error);
+      setAvailableDates([]);
     }
-  }
+  };
 
   // Fetch available slots for selected date
   useEffect(() => {
     if (selectedDate) {
-      fetchAvailableSlots()
+      fetchAvailableSlots();
     }
-  }, [selectedDate])
+  }, [selectedDate]);
 
   const fetchAvailableSlots = async () => {
-    if (!selectedDate) return
+    if (!selectedDate) return;
 
     try {
-      setLoadingSlots(true)
+      setLoadingSlots(true);
+
       // Convert Date object to YYYY-MM-DD string
-      const dateStr = selectedDate.toISOString().split('T')[0]
-      const response = await axios.get(
-        `${API_BASE_URL}/public/appointments/available-slots/`,
-        {
-          params: {
-            date: dateStr,
-            duration: 60,
-          },
-        }
-      )
+      const dateStr = selectedDate.toISOString().split("T")[0];
+
+      const response = await appointmentsAPI.public.availableSlots({
+        date: dateStr,
+        duration: 60,
+      });
 
       // Group slots by start_time to avoid duplicates from multiple lawyers
-      const allSlots = response.data.slots || []
-      const groupedSlots = {}
+      const allSlots = response.data.slots || response.data.results || [];
+      const groupedSlots = {};
 
-      allSlots.forEach(slot => {
-        const timeKey = slot.start_time
+      allSlots.forEach((slot) => {
+        const timeKey = slot.start_time;
+        if (!timeKey) return;
+
         if (!groupedSlots[timeKey]) {
           groupedSlots[timeKey] = {
             ...slot,
-            lawyers: []
-          }
+            lawyers: [],
+          };
         }
+
         if (slot.lawyer_id) {
           groupedSlots[timeKey].lawyers.push({
             id: slot.lawyer_id,
-            name: slot.lawyer_name
-          })
+            name: slot.lawyer_name,
+          });
         }
-      })
+      });
 
       // Convert back to array and keep only one slot per time
-      const uniqueSlots = Object.values(groupedSlots)
-      setAvailableSlots(uniqueSlots)
+      const uniqueSlots = Object.values(groupedSlots);
+      setAvailableSlots(uniqueSlots);
     } catch (error) {
-      console.error('Error fetching slots:', error)
-      alert('Error al cargar horarios disponibles')
+      console.error("Error fetching slots:", error);
+      alert("Error al cargar horarios disponibles");
+      setAvailableSlots([]);
     } finally {
-      setLoadingSlots(false)
+      setLoadingSlots(false);
     }
-  }
+  };
 
   const handleRequestAppointment = async () => {
     if (!selectedSlot) {
-      alert('Por favor selecciona un horario')
-      return
+      alert("Por favor selecciona un horario");
+      return;
     }
 
     if (!user?.client_profile) {
-      alert('No se pudo obtener información del cliente')
-      return
+      alert("No se pudo obtener información del cliente");
+      return;
     }
 
     try {
-      setSubmitting(true)
+      setSubmitting(true);
 
       // Get client info
-      const clientInfo = user.client_profile
+      const clientInfo = user.client_profile;
 
-      await axios.post(`${API_BASE_URL}/public/appointments/request/`, {
+      await appointmentsAPI.public.request({
         requested_by_name: clientInfo.full_name || user.name,
         requested_by_email: clientInfo.email || user.email,
-        requested_by_phone: clientInfo.phone || '',
+        requested_by_phone: clientInfo.phone || "",
         starts_at: selectedSlot.start_time,
         ends_at: selectedSlot.end_time,
         message: requestMessage,
-      })
+      });
 
-      alert('¡Solicitud enviada! El abogado revisará tu solicitud y te confirmará por correo.')
+      alert(
+        "¡Solicitud enviada! El abogado revisará tu solicitud y te confirmará por correo.",
+      );
 
       // Reset and close modal
-      setIsRequestModalOpen(false)
-      setSelectedDate(null)
-      setSelectedSlot(null)
-      setRequestMessage('')
-      setAvailableSlots([])
-      setAvailableDates([])
+      setIsRequestModalOpen(false);
+      setSelectedDate(null);
+      setSelectedSlot(null);
+      setRequestMessage("");
+      setAvailableSlots([]);
+      setAvailableDates([]);
 
       // Refresh appointments list
-      fetchData()
+      fetchData();
     } catch (error) {
-      console.error('Error requesting appointment:', error)
-      alert(error.response?.data?.detail || 'Error al solicitar la cita')
+      console.error("Error requesting appointment:", error);
+      alert(error.response?.data?.detail || "Error al solicitar la cita");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   const getStatusColor = (status) => {
     const colors = {
-      pending: 'warning',
-      confirmed: 'success',
-      cancelled: 'danger',
-      completed: 'default',
-    }
-    return colors[status] || 'default'
-  }
+      pending: "warning",
+      confirmed: "success",
+      cancelled: "danger",
+      completed: "default",
+    };
+    return colors[status] || "default";
+  };
 
   const getStatusLabel = (status) => {
     const labels = {
-      pending: 'Pendiente',
-      confirmed: 'Confirmada',
-      cancelled: 'Cancelada',
-      completed: 'Completada',
-    }
-    return labels[status] || status
-  }
+      pending: "Pendiente",
+      confirmed: "Confirmada",
+      cancelled: "Cancelada",
+      completed: "Completada",
+    };
+    return labels[status] || status;
+  };
 
   const getTypeIcon = (type) => {
     const icons = {
       in_person: MapPinIcon,
       phone: PhoneIcon,
       video: VideoCameraIcon,
-    }
-    return icons[type] || UserIcon
-  }
+    };
+    return icons[type] || UserIcon;
+  };
 
   const getTypeLabel = (type) => {
     const labels = {
-      in_person: 'Presencial',
-      phone: 'Telefónica',
-      video: 'Videollamada',
-    }
-    return labels[type] || type
-  }
+      in_person: "Presencial",
+      phone: "Telefónica",
+      video: "Videollamada",
+    };
+    return labels[type] || type;
+  };
 
   const formatDateTime = (dateString) => {
-    if (!dateString) return '-'
-    const date = new Date(dateString)
-    return date.toLocaleString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleString("es-ES", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const formatTime = (dateString) => {
-    if (!dateString) return '-'
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("es-ES", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const isUpcoming = (dateString) => {
-    return new Date(dateString) > new Date()
-  }
+    return new Date(dateString) > new Date();
+  };
 
   const isPast = (dateString) => {
-    return new Date(dateString) < new Date()
-  }
+    return new Date(dateString) < new Date();
+  };
 
   // Filter appointments
-  let filteredAppointments = appointments
+  let filteredAppointments = appointments;
 
   // Filter by time (upcoming/past)
-  if (timeFilter === 'upcoming') {
+  if (timeFilter === "upcoming") {
     filteredAppointments = filteredAppointments.filter((apt) =>
-      isUpcoming(apt.starts_at)
-    )
-  } else if (timeFilter === 'past') {
-    filteredAppointments = filteredAppointments.filter((apt) => isPast(apt.starts_at))
+      isUpcoming(apt.starts_at),
+    );
+  } else if (timeFilter === "past") {
+    filteredAppointments = filteredAppointments.filter((apt) =>
+      isPast(apt.starts_at),
+    );
   }
 
   // Filter by status
-  if (statusFilter !== 'all') {
+  if (statusFilter !== "all") {
     filteredAppointments = filteredAppointments.filter(
-      (apt) => apt.status === statusFilter
-    )
+      (apt) => apt.status === statusFilter,
+    );
   }
 
   // Sort by date (upcoming: ascending, past: descending)
   filteredAppointments = [...filteredAppointments].sort((a, b) => {
-    const dateA = new Date(a.starts_at)
-    const dateB = new Date(b.starts_at)
-    return timeFilter === 'past' ? dateB - dateA : dateA - dateB
-  })
+    const dateA = new Date(a.starts_at);
+    const dateB = new Date(b.starts_at);
+    return timeFilter === "past" ? dateB - dateA : dateA - dateB;
+  });
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner size="lg" text="Cargando citas..." />
       </div>
-    )
+    );
   }
 
   return (
@@ -298,8 +319,8 @@ function PortalAppointmentsPage() {
         </div>
         <Button
           onClick={() => {
-            setIsRequestModalOpen(true)
-            fetchAvailableDates()
+            setIsRequestModalOpen(true);
+            fetchAvailableDates();
           }}
           variant="primary"
           className="flex items-center gap-2"
@@ -354,26 +375,26 @@ function PortalAppointmentsPage() {
           icon={CalendarIcon}
           title="No hay citas"
           description={
-            timeFilter === 'upcoming'
-              ? 'No tienes citas próximas programadas'
-              : timeFilter === 'past'
-              ? 'No tienes citas pasadas'
-              : 'No tienes citas registradas'
+            timeFilter === "upcoming"
+              ? "No tienes citas próximas programadas"
+              : timeFilter === "past"
+                ? "No tienes citas pasadas"
+                : "No tienes citas registradas"
           }
         />
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {filteredAppointments.map((apt) => {
-            const TypeIcon = getTypeIcon(apt.appointment_type)
-            const upcoming = isUpcoming(apt.starts_at)
+            const TypeIcon = getTypeIcon(apt.appointment_type);
+            const upcoming = isUpcoming(apt.starts_at);
 
             return (
               <Card
                 key={apt.id}
                 className={`overflow-hidden ${
-                  upcoming && apt.status === 'confirmed'
-                    ? 'border-l-4 border-l-accent'
-                    : ''
+                  upcoming && apt.status === "confirmed"
+                    ? "border-l-4 border-l-accent"
+                    : ""
                 }`}
               >
                 <div className="p-6">
@@ -382,16 +403,16 @@ function PortalAppointmentsPage() {
                     <div className="flex-shrink-0">
                       <div
                         className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                          upcoming && apt.status === 'confirmed'
-                            ? 'bg-accent/10'
-                            : 'bg-gray-100 dark:bg-gray-700'
+                          upcoming && apt.status === "confirmed"
+                            ? "bg-accent/10"
+                            : "bg-gray-100 dark:bg-gray-700"
                         }`}
                       >
                         <CalendarIcon
                           className={`h-6 w-6 ${
-                            upcoming && apt.status === 'confirmed'
-                              ? 'text-accent'
-                              : 'text-gray-500 dark:text-gray-400'
+                            upcoming && apt.status === "confirmed"
+                              ? "text-accent"
+                              : "text-gray-500 dark:text-gray-400"
                           }`}
                         />
                       </div>
@@ -443,7 +464,7 @@ function PortalAppointmentsPage() {
                       </div>
 
                       {/* Location/Link */}
-                      {apt.location && apt.appointment_type === 'in_person' && (
+                      {apt.location && apt.appointment_type === "in_person" && (
                         <div className="flex items-start gap-2 mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                           <MapPinIcon className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
                           <div className="text-sm">
@@ -457,25 +478,26 @@ function PortalAppointmentsPage() {
                         </div>
                       )}
 
-                      {apt.google_meet_link && apt.appointment_type === 'video' && (
-                        <div className="mt-3">
-                          <a
-                            href={apt.google_meet_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-dark transition-colors"
-                          >
-                            <VideoCameraIcon className="h-5 w-5" />
-                            Unirse a la videollamada
-                          </a>
-                        </div>
-                      )}
+                      {apt.google_meet_link &&
+                        apt.appointment_type === "video" && (
+                          <div className="mt-3">
+                            <a
+                              href={apt.google_meet_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-dark transition-colors"
+                            >
+                              <VideoCameraIcon className="h-5 w-5" />
+                              Unirse a la videollamada
+                            </a>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
 
                 {/* Footer - Show for upcoming confirmed appointments */}
-                {upcoming && apt.status === 'confirmed' && (
+                {upcoming && apt.status === "confirmed" && (
                   <div className="bg-accent/5 dark:bg-accent/10 px-6 py-3 border-t border-accent/20">
                     <p className="text-sm text-accent dark:text-accent-light">
                       ⏰ Cita próxima confirmada
@@ -483,7 +505,7 @@ function PortalAppointmentsPage() {
                   </div>
                 )}
               </Card>
-            )
+            );
           })}
         </div>
       )}
@@ -492,12 +514,12 @@ function PortalAppointmentsPage() {
       <Modal
         isOpen={isRequestModalOpen}
         onClose={() => {
-          setIsRequestModalOpen(false)
-          setSelectedDate(null)
-          setSelectedSlot(null)
-          setRequestMessage('')
-          setAvailableSlots([])
-          setAvailableDates([])
+          setIsRequestModalOpen(false);
+          setSelectedDate(null);
+          setSelectedSlot(null);
+          setRequestMessage("");
+          setAvailableSlots([]);
+          setAvailableDates([]);
         }}
         title="Solicitar Cita"
         size="2xl"
@@ -511,18 +533,17 @@ function PortalAppointmentsPage() {
             <DatePicker
               selected={selectedDate}
               onChange={(date) => {
-                setSelectedDate(date)
-                setSelectedSlot(null) // Reset slot when date changes
+                setSelectedDate(date);
+                setSelectedSlot(null);
               }}
               minDate={new Date()}
               maxDate={new Date(new Date().setDate(new Date().getDate() + 60))}
               filterDate={(date) => {
-                // Only enable dates that are in availableDates
-                if (availableDates.length === 0) return true
+                if (availableDates.length === 0) return true;
                 return availableDates.some(
                   (availableDate) =>
-                    availableDate.toDateString() === date.toDateString()
-                )
+                    availableDate.toDateString() === date.toDateString(),
+                );
               }}
               locale="es"
               dateFormat="dd/MM/yyyy"
@@ -549,24 +570,28 @@ function PortalAppointmentsPage() {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
                   {availableSlots.map((slot, index) => {
-                    const isSelected = selectedSlot?.start_time === slot.start_time
+                    const isSelected =
+                      selectedSlot?.start_time === slot.start_time;
                     return (
                       <button
                         key={index}
                         onClick={() => setSelectedSlot(slot)}
                         className={`p-3 rounded-lg border-2 transition-all ${
                           isSelected
-                            ? 'border-accent bg-accent/10 text-accent'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-accent/50 text-gray-700 dark:text-gray-300'
+                            ? "border-accent bg-accent/10 text-accent"
+                            : "border-gray-300 dark:border-gray-600 hover:border-accent/50 text-gray-700 dark:text-gray-300"
                         }`}
                       >
                         <div className="flex items-center justify-center gap-2">
                           <ClockIcon className="h-4 w-4" />
                           <span className="font-medium">
-                            {new Date(slot.start_time).toLocaleTimeString('es-ES', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {new Date(slot.start_time).toLocaleTimeString(
+                              "es-ES",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
                           </span>
                         </div>
                         {slot.lawyers && slot.lawyers.length > 1 && (
@@ -575,7 +600,7 @@ function PortalAppointmentsPage() {
                           </div>
                         )}
                       </button>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -602,12 +627,12 @@ function PortalAppointmentsPage() {
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
               onClick={() => {
-                setIsRequestModalOpen(false)
-                setSelectedDate(null)
-                setSelectedSlot(null)
-                setRequestMessage('')
-                setAvailableSlots([])
-                setAvailableDates([])
+                setIsRequestModalOpen(false);
+                setSelectedDate(null);
+                setSelectedSlot(null);
+                setRequestMessage("");
+                setAvailableSlots([]);
+                setAvailableDates([]);
               }}
               variant="secondary"
               disabled={submitting}
@@ -626,14 +651,14 @@ function PortalAppointmentsPage() {
                   Enviando...
                 </>
               ) : (
-                'Enviar Solicitud'
+                "Enviar Solicitud"
               )}
             </Button>
           </div>
         </div>
       </Modal>
     </div>
-  )
+  );
 }
 
-export default PortalAppointmentsPage
+export default PortalAppointmentsPage;
