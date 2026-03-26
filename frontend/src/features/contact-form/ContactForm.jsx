@@ -44,38 +44,31 @@ function ContactForm() {
     try {
       setLoadingDates(true);
 
-      const response = await appointmentsAPI.public.availableSlots({
+      const response = await appointmentsAPI.public.availableDates({
         duration: 60,
         days_ahead: 60,
       });
 
-      const slots = response.data.slots || response.data.results || [];
+      const dates = response.data.dates || response.data.results || [];
 
-      const uniqueDatesMap = new Map();
+      const parsedDates = dates
+        .map((item) => {
+          const rawDate = item.date || item;
+          if (!rawDate) return null;
 
-      slots.forEach((slot) => {
-        const rawDate = slot.date || slot.start_time;
-        if (!rawDate) return;
-
-        const dateObj = new Date(rawDate);
-        const key = dateObj.toDateString();
-
-        if (!uniqueDatesMap.has(key)) {
-          uniqueDatesMap.set(
-            key,
-            new Date(
-              dateObj.getFullYear(),
-              dateObj.getMonth(),
-              dateObj.getDate(),
-              12,
-              0,
-              0,
-            ),
+          const dateObj = new Date(rawDate);
+          return new Date(
+            dateObj.getFullYear(),
+            dateObj.getMonth(),
+            dateObj.getDate(),
+            12,
+            0,
+            0,
           );
-        }
-      });
+        })
+        .filter(Boolean);
 
-      setAvailableDates(Array.from(uniqueDatesMap.values()));
+      setAvailableDates(parsedDates);
     } catch (error) {
       console.error("Error fetching available dates:", error);
       setAvailableDates([]);

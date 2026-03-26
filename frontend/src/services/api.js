@@ -5,28 +5,29 @@
  * Includes automatic JWT token refresh and error handling.
  */
 
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Request interceptor - Add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor - Handle token refresh
@@ -39,46 +40,49 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = localStorage.getItem("refresh_token");
       if (refreshToken) {
         try {
-          const response = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
-            refresh: refreshToken,
-          });
+          const response = await axios.post(
+            `${API_BASE_URL}/auth/token/refresh/`,
+            {
+              refresh: refreshToken,
+            },
+          );
 
           const { access } = response.data;
-          localStorage.setItem('access_token', access);
+          localStorage.setItem("access_token", access);
           originalRequest.headers.Authorization = `Bearer ${access}`;
 
           return api(originalRequest);
         } catch (refreshError) {
           // Refresh failed - logout user and redirect
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user");
+          window.location.href = "/login";
           return Promise.reject(refreshError);
         }
       } else {
         // No refresh token available - logout and redirect
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
         return Promise.reject(error);
       }
     }
 
     // If 401 and already retried, logout (refresh failed)
     if (error.response?.status === 401 && originalRequest._retry) {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // ============================================================================
@@ -86,111 +90,84 @@ api.interceptors.response.use(
 // ============================================================================
 export const authAPI = {
   login: (username, password) =>
-    api.post('/auth/login/', { username, password }),
+    api.post("/auth/login/", { username, password }),
 
-  register: (data) =>
-    api.post('/auth/register/', data),
+  register: (data) => api.post("/auth/register/", data),
 
-  logout: () =>
-    api.post('/auth/logout/'),
+  logout: () => api.post("/auth/logout/"),
 
-  refreshToken: (refresh) =>
-    api.post('/auth/token/refresh/', { refresh }),
+  refreshToken: (refresh) => api.post("/auth/token/refresh/", { refresh }),
 
-  getCurrentUser: () =>
-    api.get('/auth/me/'),
+  getCurrentUser: () => api.get("/auth/me/"),
 
-  updateProfile: (data) =>
-    api.patch('/auth/me/', data),
+  updateProfile: (data) => api.patch("/auth/me/", data),
 
-  changePassword: (data) =>
-    api.post('/auth/change-password/', data),
+  changePassword: (data) => api.post("/auth/change-password/", data),
 
   requestPasswordReset: (email) =>
-    api.post('/auth/password-reset/request/', { email }),
+    api.post("/auth/password-reset/request/", { email }),
 
   confirmPasswordReset: (data) =>
-    api.post('/auth/password-reset/confirm/', data),
+    api.post("/auth/password-reset/confirm/", data),
 };
 
 // ============================================================================
 // USERS API
 // ============================================================================
 export const usersAPI = {
-  getAll: (params) =>
-    api.get('/users/', { params }),
+  getAll: (params) => api.get("/users/", { params }),
 
-  get: (id) =>
-    api.get(`/users/${id}/`),
+  get: (id) => api.get(`/users/${id}/`),
 
-  create: (data) =>
-    api.post('/users/', data),
+  create: (data) => api.post("/users/", data),
 
-  update: (id, data) =>
-    api.patch(`/users/${id}/`, data),
+  update: (id, data) => api.patch(`/users/${id}/`, data),
 
-  delete: (id) =>
-    api.delete(`/users/${id}/`),
+  delete: (id) => api.delete(`/users/${id}/`),
 };
 
 // ============================================================================
 // CLIENTS API
 // ============================================================================
 export const clientsAPI = {
-  getAll: (params) =>
-    api.get('/clients/', { params }),
+  getAll: (params) => api.get("/clients/", { params }),
 
-  list: (params) =>
-    api.get('/clients/', { params }),
+  list: (params) => api.get("/clients/", { params }),
 
-  create: (data) =>
-    api.post('/clients/', data),
+  create: (data) => api.post("/clients/", data),
 
-  get: (id) =>
-    api.get(`/clients/${id}/`),
+  get: (id) => api.get(`/clients/${id}/`),
 
-  update: (id, data) =>
-    api.patch(`/clients/${id}/`, data),
+  update: (id, data) => api.patch(`/clients/${id}/`, data),
 
-  delete: (id) =>
-    api.delete(`/clients/${id}/`),
+  delete: (id) => api.delete(`/clients/${id}/`),
 };
 
 // ============================================================================
 // CASES API
 // ============================================================================
 export const casesAPI = {
-  getAll: (params) =>
-    api.get('/cases/', { params }),
+  getAll: (params) => api.get("/cases/", { params }),
 
-  list: (params) =>
-    api.get('/cases/', { params }),
+  list: (params) => api.get("/cases/", { params }),
 
-  create: (data) =>
-    api.post('/cases/', data),
+  create: (data) => api.post("/cases/", data),
 
-  get: (id) =>
-    api.get(`/cases/${id}/`),
+  get: (id) => api.get(`/cases/${id}/`),
 
-  update: (id, data) =>
-    api.patch(`/cases/${id}/`, data),
+  update: (id, data) => api.patch(`/cases/${id}/`, data),
 
-  delete: (id) =>
-    api.delete(`/cases/${id}/`),
+  delete: (id) => api.delete(`/cases/${id}/`),
 
-  timeline: (id) =>
-    api.get(`/cases/${id}/timeline/`),
+  timeline: (id) => api.get(`/cases/${id}/timeline/`),
 
-  documents: (id, params) =>
-    api.get(`/cases/${id}/documents/`, { params }),
+  documents: (id, params) => api.get(`/cases/${id}/documents/`, { params }),
 
   // Portal endpoints
   portal: {
-    list: () =>
-      api.get('/portal/cases/'),
+    list: () => api.get("/portal/cases/"),
 
-    get: (id) =>
-      api.get(`/portal/cases/${id}/`),
+    get: (id) => api.get(`/portal/cases/${id}/`),
   },
 };
 
@@ -198,54 +175,43 @@ export const casesAPI = {
 // DOCUMENTS API
 // ============================================================================
 export const documentsAPI = {
-  getAll: (params) =>
-    api.get('/documents/', { params }),
+  getAll: (params) => api.get("/documents/", { params }),
 
-  list: (params) =>
-    api.get('/documents/', { params }),
+  list: (params) => api.get("/documents/", { params }),
 
   create: (formData) =>
-    api.post('/documents/', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    api.post("/documents/", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     }),
 
-  get: (id) =>
-    api.get(`/documents/${id}/`),
+  get: (id) => api.get(`/documents/${id}/`),
 
-  update: (id, data) =>
-    api.patch(`/documents/${id}/`, data),
+  update: (id, data) => api.patch(`/documents/${id}/`, data),
 
-  delete: (id) =>
-    api.delete(`/documents/${id}/`),
+  delete: (id) => api.delete(`/documents/${id}/`),
 
-  notifyClient: (id, data) =>
-    api.post(`/documents/${id}/notify_client/`, data),
+  notifyClient: (id, data) => api.post(`/documents/${id}/notify_client/`, data),
 
-  validateCode: (data) =>
-    api.post('/public/documents/validate-code/', data),
+  validateCode: (data) => api.post("/public/documents/validate-code/", data),
 
   download: (token) =>
     api.get(`/public/documents/download/${token}/`, {
-      responseType: 'blob',
+      responseType: "blob",
     }),
 
-  getAccessLog: (id) =>
-    api.get(`/documents/${id}/access_logs/`),
+  getAccessLog: (id) => api.get(`/documents/${id}/access_logs/`),
 
-  accessLog: (id) =>
-    api.get(`/documents/${id}/access_logs/`),
+  accessLog: (id) => api.get(`/documents/${id}/access_logs/`),
 
   // Portal endpoints
   portal: {
-    list: () =>
-      api.get('/portal/documents/'),
+    list: () => api.get("/portal/documents/"),
 
-    get: (id) =>
-      api.get(`/portal/documents/${id}/`),
+    get: (id) => api.get(`/portal/documents/${id}/`),
 
     upload: (formData) =>
-      api.post('/portal/documents/upload/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      api.post("/portal/documents/upload/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       }),
   },
 };
@@ -254,49 +220,40 @@ export const documentsAPI = {
 // APPOINTMENTS API
 // ============================================================================
 export const appointmentsAPI = {
-  getAll: (params) =>
-    api.get('/appointments/', { params }),
+  getAll: (params) => api.get("/appointments/", { params }),
 
-  list: (params) =>
-    api.get('/appointments/', { params }),
+  list: (params) => api.get("/appointments/", { params }),
 
-  create: (data) =>
-    api.post('/appointments/', data),
+  create: (data) => api.post("/appointments/", data),
 
-  get: (id) =>
-    api.get(`/appointments/${id}/`),
+  get: (id) => api.get(`/appointments/${id}/`),
 
-  update: (id, data) =>
-    api.patch(`/appointments/${id}/`, data),
+  update: (id, data) => api.patch(`/appointments/${id}/`, data),
 
-  delete: (id) =>
-    api.delete(`/appointments/${id}/`),
+  delete: (id) => api.delete(`/appointments/${id}/`),
 
-  syncGoogle: (id) =>
-    api.post(`/appointments/${id}/sync_google/`),
+  syncGoogle: (id) => api.post(`/appointments/${id}/sync_google/`),
 
-  bulkSync: () =>
-    api.post('/appointments/bulk_sync/'),
+  bulkSync: () => api.post("/appointments/bulk_sync/"),
 
   // Public endpoints
   public: {
+    availableDates: (params) =>
+      api.get("/public/appointments/available-dates/", { params }),
+
     availableSlots: (params) =>
-      api.get('/public/appointments/available-slots/', { params }),
+      api.get("/public/appointments/available-slots/", { params }),
 
-    request: (data) =>
-      api.post('/public/appointments/request/', data),
+    request: (data) => api.post("/public/appointments/request/", data),
 
-    confirm: (token) =>
-      api.get(`/public/appointments/confirm/${token}/`),
+    confirm: (token) => api.get(`/public/appointments/confirm/${token}/`),
   },
 
   // Portal endpoints
   portal: {
-    list: () =>
-      api.get('/portal/appointments/'),
+    list: () => api.get("/portal/appointments/"),
 
-    get: (id) =>
-      api.get(`/portal/appointments/${id}/`),
+    get: (id) => api.get(`/portal/appointments/${id}/`),
   },
 };
 
@@ -306,92 +263,66 @@ export const appointmentsAPI = {
 export const landingAPI = {
   // Public endpoints
   public: {
-    services: () =>
-      api.get('/public/services/'),
+    services: () => api.get("/public/services/"),
 
-    testimonials: () =>
-      api.get('/public/testimonials/'),
+    testimonials: () => api.get("/public/testimonials/"),
 
-    successCases: () =>
-      api.get('/public/success-cases/'),
+    successCases: () => api.get("/public/success-cases/"),
 
-    contactRequest: (data) =>
-      api.post('/public/contact-requests/', data),
+    contactRequest: (data) => api.post("/public/contact-requests/", data),
   },
 
   // Staff endpoints
   services: {
-    getAll: () =>
-      api.get('/landing/services/'),
+    getAll: () => api.get("/landing/services/"),
 
-    list: () =>
-      api.get('/landing/services/'),
+    list: () => api.get("/landing/services/"),
 
-    create: (data) =>
-      api.post('/landing/services/', data),
+    create: (data) => api.post("/landing/services/", data),
 
-    get: (id) =>
-      api.get(`/landing/services/${id}/`),
+    get: (id) => api.get(`/landing/services/${id}/`),
 
-    update: (id, data) =>
-      api.patch(`/landing/services/${id}/`, data),
+    update: (id, data) => api.patch(`/landing/services/${id}/`, data),
 
-    delete: (id) =>
-      api.delete(`/landing/services/${id}/`),
+    delete: (id) => api.delete(`/landing/services/${id}/`),
   },
 
   testimonials: {
-    getAll: () =>
-      api.get('/landing/testimonials/'),
+    getAll: () => api.get("/landing/testimonials/"),
 
-    list: () =>
-      api.get('/landing/testimonials/'),
+    list: () => api.get("/landing/testimonials/"),
 
-    create: (data) =>
-      api.post('/landing/testimonials/', data),
+    create: (data) => api.post("/landing/testimonials/", data),
 
-    get: (id) =>
-      api.get(`/landing/testimonials/${id}/`),
+    get: (id) => api.get(`/landing/testimonials/${id}/`),
 
-    update: (id, data) =>
-      api.patch(`/landing/testimonials/${id}/`, data),
+    update: (id, data) => api.patch(`/landing/testimonials/${id}/`, data),
 
-    delete: (id) =>
-      api.delete(`/landing/testimonials/${id}/`),
+    delete: (id) => api.delete(`/landing/testimonials/${id}/`),
   },
 
   successCases: {
-    getAll: () =>
-      api.get('/landing/success-cases/'),
+    getAll: () => api.get("/landing/success-cases/"),
 
-    list: () =>
-      api.get('/landing/success-cases/'),
+    list: () => api.get("/landing/success-cases/"),
 
-    create: (data) =>
-      api.post('/landing/success-cases/', data),
+    create: (data) => api.post("/landing/success-cases/", data),
 
-    get: (id) =>
-      api.get(`/landing/success-cases/${id}/`),
+    get: (id) => api.get(`/landing/success-cases/${id}/`),
 
-    update: (id, data) =>
-      api.patch(`/landing/success-cases/${id}/`, data),
+    update: (id, data) => api.patch(`/landing/success-cases/${id}/`, data),
 
-    delete: (id) =>
-      api.delete(`/landing/success-cases/${id}/`),
+    delete: (id) => api.delete(`/landing/success-cases/${id}/`),
   },
 
   contactRequests: {
-    getAll: (params) =>
-      api.get('/landing/contact-requests/', { params }),
+    getAll: (params) => api.get("/landing/contact-requests/", { params }),
 
-    list: (params) =>
-      api.get('/landing/contact-requests/', { params }),
+    list: (params) => api.get("/landing/contact-requests/", { params }),
 
-    get: (id) =>
-      api.get(`/landing/contact-requests/${id}/`),
+    get: (id) => api.get(`/landing/contact-requests/${id}/`),
 
-    update: (id, data) =>
-      api.patch(`/landing/contact-requests/${id}/`, data),
+    update: (id, data) => api.patch(`/landing/contact-requests/${id}/`, data),
   },
 };
 
@@ -399,8 +330,7 @@ export const landingAPI = {
 // PORTAL API (General)
 // ============================================================================
 export const portalAPI = {
-  dashboard: () =>
-    api.get('/portal/dashboard/'),
+  dashboard: () => api.get("/portal/dashboard/"),
 
   cases: casesAPI.portal,
   documents: documentsAPI.portal,
