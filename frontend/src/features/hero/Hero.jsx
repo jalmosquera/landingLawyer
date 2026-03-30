@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 import WaveDivider from "../../components/WaveDivider";
 
 function Hero() {
-  const desktopImages = [
-    "/landing.jpg",
-    "/img2.jpg",
-    "/img3.jpg",
-    "/img4.jpeg",
-  ];
+  const desktopImages = ["/landing.jpg", "/img2.jpg", "/img3.jpg"];
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
