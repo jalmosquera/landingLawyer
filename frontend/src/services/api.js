@@ -30,11 +30,23 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Response interceptor - Handle token refresh
+// Response interceptor - Handle token refresh and 5xx retries
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Retry GET requests on 5xx errors (handles Railway cold-start / DB sleep)
+    if (
+      error.response?.status >= 500 &&
+      originalRequest.method === "get" &&
+      (originalRequest._retryCount || 0) < 3
+    ) {
+      originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+      const delay = Math.min(1000 * Math.pow(2, originalRequest._retryCount - 1), 8000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return api(originalRequest);
+    }
 
     // If 401 and not already retried, try to refresh token
     if (error.response?.status === 401 && !originalRequest._retry) {

@@ -47,6 +47,7 @@ function PortalAppointmentsPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [requestMessage, setRequestMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [slotsError, setSlotsError] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -146,7 +147,7 @@ function PortalAppointmentsPage() {
       setAvailableSlots(uniqueSlots);
     } catch (error) {
       console.error("Error fetching slots:", error);
-      alert("Error al cargar horarios disponibles");
+      setSlotsError("No se pudieron cargar los horarios disponibles. Por favor, intentá de nuevo.");
       setAvailableSlots([]);
     } finally {
       setLoadingSlots(false);
@@ -520,6 +521,7 @@ function PortalAppointmentsPage() {
           setRequestMessage("");
           setAvailableSlots([]);
           setAvailableDates([]);
+          setSlotsError(null);
         }}
         title="Solicitar Cita"
         size="2xl"
@@ -535,6 +537,7 @@ function PortalAppointmentsPage() {
               onChange={(date) => {
                 setSelectedDate(date);
                 setSelectedSlot(null);
+                setSlotsError(null);
               }}
               minDate={new Date()}
               maxDate={new Date(new Date().setDate(new Date().getDate() + 60))}
@@ -562,6 +565,10 @@ function PortalAppointmentsPage() {
               {loadingSlots ? (
                 <div className="flex items-center justify-center py-8">
                   <LoadingSpinner text="Cargando horarios..." />
+                </div>
+              ) : slotsError ? (
+                <div className="text-center py-8 text-red-500 dark:text-red-400 text-sm">
+                  {slotsError}
                 </div>
               ) : availableSlots.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -633,6 +640,7 @@ function PortalAppointmentsPage() {
                 setRequestMessage("");
                 setAvailableSlots([]);
                 setAvailableDates([]);
+                setSlotsError(null);
               }}
               variant="secondary"
               disabled={submitting}

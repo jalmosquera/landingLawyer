@@ -81,7 +81,7 @@ function Header() {
                   </button>
                 </>
               )}
-              <button className="btn-accent">Free Consultation</button>
+              <button className="btn-accent">Consulta Gratuita</button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -196,7 +196,7 @@ function Header() {
 
         {/* Lower Section - Contact Info */}
         <div className="bg-primary-dark px-6 py-8">
-          <h2 className="text-sm font-bold tracking-[0.3em] mb-6">OFFICE</h2>
+          <h2 className="text-sm font-bold tracking-[0.3em] mb-6">DESPACHO</h2>
 
           <div
             className={`space-y-3 transition-all duration-300 transform ${
@@ -210,23 +210,18 @@ function Header() {
                 : "0ms",
             }}
           >
-            <p className="text-base font-semibold">NEW YORK</p>
-            <p className="text-sm text-gray-300">
-              Lorem Ipsum Street, 123
-              <br />
-              Syracuse, NY 13202
-            </p>
+            <p className="text-base font-semibold">ARDALES, MÁLAGA</p>
             <a
-              href="tel:(315)255-3368"
+              href="tel:+34607433925"
               className="block text-base text-accent hover:text-accent-light transition-colors duration-300 mt-3"
             >
-              (315) 255-3368
+              +34 607 43 39 25
             </a>
             <a
-              href="mailto:info@lawfirm.com"
+              href="mailto:eduardoberla@gmail.com"
               className="block text-sm text-gray-300 hover:text-white transition-colors duration-300"
             >
-              info@lawfirm.com
+              eduardoberla@gmail.com
             </a>
 
             {user ? (

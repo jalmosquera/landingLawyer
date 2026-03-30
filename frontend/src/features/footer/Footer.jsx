@@ -78,7 +78,7 @@ function Footer() {
 
           {/* Quick Links Column */}
           <div>
-            <h4 className="text-xl font-bold mb-4">Quick Links</h4>
+            <h4 className="text-xl font-bold mb-4">Navegación</h4>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.label}>
@@ -95,7 +95,7 @@ function Footer() {
 
           {/* Practice Areas Column */}
           <div>
-            <h4 className="text-xl font-bold mb-4">Practice Areas</h4>
+            <h4 className="text-xl font-bold mb-4">Áreas de Práctica</h4>
             <ul className="space-y-2">
               {practiceAreas.map((area) => (
                 <li key={area}>
@@ -155,13 +155,13 @@ function Footer() {
                 href="#"
                 className="text-gray-300 hover:text-accent transition-colors duration-300"
               >
-                Privacy Policy
+                Política de Privacidad
               </a>
               <a
                 href="#"
                 className="text-gray-300 hover:text-accent transition-colors duration-300"
               >
-                Terms of Service
+                Términos de Servicio
               </a>
             </div>
           </div>
