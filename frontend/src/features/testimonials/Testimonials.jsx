@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { landingAPI } from "../../services/api";
 
-const FALLBACK_TESTIMONIALS = [
+const BASE_TESTIMONIALS = [
   { client_name: "Antonio Ruiz", rating: 5, text: "Excelente profesional. Me asesoró en un asunto civil bastante complejo y desde el primer momento me transmitió seguridad y claridad. El resultado fue muy favorable y siempre estuvo disponible para resolver cualquier duda.", location: "Málaga, España" },
   { client_name: "María Fernández", rating: 5, text: "Gran trato y mucha profesionalidad. Eduardo Bernal llevó mi caso con total dedicación y me explicó cada paso del proceso legal de forma clara. Sin duda lo recomiendo.", location: "Ronda, España" },
   { client_name: "José Manuel García", rating: 5, text: "Un abogado muy serio y comprometido con su trabajo. Me ayudó con un procedimiento administrativo complicado y supo encontrar la mejor estrategia para resolverlo.", location: "Antequera, España" },
@@ -9,32 +9,24 @@ const FALLBACK_TESTIMONIALS = [
 ]
 
 function Testimonials() {
-  const [testimonials, setTestimonials] = useState(FALLBACK_TESTIMONIALS)
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [extraTestimonials, setExtraTestimonials] = useState([])
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
     landingAPI.public.testimonials()
       .then((res) => {
         const data = res.data?.testimonials || res.data || []
-        if (data.length > 0) {
-          setTestimonials(data)
-          setCurrentIndex(0)
-        }
+        const baseNames = new Set(BASE_TESTIMONIALS.map(t => t.client_name))
+        setExtraTestimonials(data.filter(t => !baseNames.has(t.client_name)))
       })
       .catch(() => {})
   }, [])
 
-  const nextTestimonial = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-  };
+  const testimonials = [...BASE_TESTIMONIALS, ...extraTestimonials]
+  const current = testimonials[currentIndex]
 
-  const prevTestimonial = () => {
-    setCurrentIndex(
-      (prev) => (prev - 1 + testimonials.length) % testimonials.length,
-    );
-  };
-
-  const current = testimonials[currentIndex];
+  const nextTestimonial = () => setCurrentIndex((prev) => (prev + 1) % testimonials.length)
+  const prevTestimonial = () => setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
 
   return (
     <section
@@ -58,9 +50,7 @@ function Testimonials() {
             <div className="text-accent text-6xl mb-4">"</div>
 
             <div className="mb-8">
-              <p className="text-xl text-gray-700 italic mb-6">
-                {current.text}
-              </p>
+              <p className="text-xl text-gray-700 italic mb-6">{current.text}</p>
 
               <div className="flex justify-center mb-4">
                 {[...Array(current.rating)].map((_, i) => (
@@ -69,12 +59,8 @@ function Testimonials() {
               </div>
 
               <div className="text-center">
-                <p className="font-bold text-primary text-lg">
-                  {current.client_name}
-                </p>
-                {current.location && (
-                  <p className="text-gray-600">{current.location}</p>
-                )}
+                <p className="font-bold text-primary text-lg">{current.client_name}</p>
+                {current.location && <p className="text-gray-600">{current.location}</p>}
               </div>
             </div>
 
@@ -114,7 +100,7 @@ function Testimonials() {
         </div>
       </div>
     </section>
-  );
+  )
 }
 
-export default Testimonials;
+export default Testimonials

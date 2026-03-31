@@ -8,27 +8,30 @@ const ICON_MAP = {
   FaLandmark, FaHandshake, FaFileAlt, FaBuilding, FaChild,
 }
 
-const FALLBACK_AREAS = [
-  { title: 'Derecho Penal', description: 'Defensa y representación en procesos penales ante los tribunales de Málaga, Ronda, Antequera y otras jurisdicciones.', icon: 'FaGavel' },
-  { title: 'Derecho Civil', description: 'Asesoramiento y litigación en asuntos civiles, incluyendo contratos, responsabilidad civil y reclamaciones.', icon: 'FaBalanceScale' },
-  { title: 'Derecho Contencioso-Administrativo', description: 'Representación ante tribunales administrativos en defensa de los derechos frente a la Administración Pública.', icon: 'FaLandmark' },
-  { title: 'Derecho Inmobiliario', description: 'Especialización en transacciones inmobiliarias, contratos de compraventa, arrendamientos y conflictos de propiedad.', icon: 'FaHome' },
-  { title: 'Derecho Familiar', description: 'Asesoramiento en divorcios, custodia, pensiones alimenticias y otros asuntos de derecho de familia.', icon: 'FaUsers' },
-  { title: 'Derecho Mercantil', description: 'Consultoría y representación en asuntos comerciales, sociedades y contratos mercantiles.', icon: 'FaBriefcase' },
-  { title: 'Asesoramiento Negocial', description: 'Mediación y asesoramiento extrajudicial para la resolución de conflictos y negociaciones.', icon: 'FaHandshake' },
+const BASE_AREAS = [
+  { title: 'Derecho Penal', description: 'Defensa y representación en procesos penales ante los tribunales de Málaga, Ronda, Antequera y otras jurisdicciones.', icon: 'FaGavel', order: 0 },
+  { title: 'Derecho Civil', description: 'Asesoramiento y litigación en asuntos civiles, incluyendo contratos, responsabilidad civil y reclamaciones.', icon: 'FaBalanceScale', order: 1 },
+  { title: 'Derecho Contencioso-Administrativo', description: 'Representación ante tribunales administrativos en defensa de los derechos frente a la Administración Pública.', icon: 'FaLandmark', order: 2 },
+  { title: 'Derecho Inmobiliario', description: 'Especialización en transacciones inmobiliarias, contratos de compraventa, arrendamientos y conflictos de propiedad.', icon: 'FaHome', order: 3 },
+  { title: 'Derecho Familiar', description: 'Asesoramiento en divorcios, custodia, pensiones alimenticias y otros asuntos de derecho de familia.', icon: 'FaUsers', order: 4 },
+  { title: 'Derecho Mercantil', description: 'Consultoría y representación en asuntos comerciales, sociedades y contratos mercantiles.', icon: 'FaBriefcase', order: 5 },
+  { title: 'Asesoramiento Negocial', description: 'Mediación y asesoramiento extrajudicial para la resolución de conflictos y negociaciones.', icon: 'FaHandshake', order: 6 },
 ]
 
 function PracticeAreas() {
-  const [areas, setAreas] = useState(FALLBACK_AREAS)
+  const [extraAreas, setExtraAreas] = useState([])
 
   useEffect(() => {
     landingAPI.public.services()
       .then((res) => {
         const data = res.data?.services || res.data || []
-        if (data.length > 0) setAreas(data)
+        const baseTitles = new Set(BASE_AREAS.map(a => a.title))
+        setExtraAreas(data.filter(a => !baseTitles.has(a.title)))
       })
       .catch(() => {})
   }, [])
+
+  const areas = [...BASE_AREAS, ...extraAreas]
 
   return (
     <section id="practice-areas" className="relative py-20 bg-white">
