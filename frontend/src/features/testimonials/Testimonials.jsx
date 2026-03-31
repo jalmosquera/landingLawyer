@@ -1,34 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { landingAPI } from "../../services/api";
+
+const FALLBACK_TESTIMONIALS = [
+  { client_name: "Antonio Ruiz", rating: 5, text: "Excelente profesional. Me asesoró en un asunto civil bastante complejo y desde el primer momento me transmitió seguridad y claridad. El resultado fue muy favorable y siempre estuvo disponible para resolver cualquier duda.", location: "Málaga, España" },
+  { client_name: "María Fernández", rating: 5, text: "Gran trato y mucha profesionalidad. Eduardo Bernal llevó mi caso con total dedicación y me explicó cada paso del proceso legal de forma clara. Sin duda lo recomiendo.", location: "Ronda, España" },
+  { client_name: "José Manuel García", rating: 5, text: "Un abogado muy serio y comprometido con su trabajo. Me ayudó con un procedimiento administrativo complicado y supo encontrar la mejor estrategia para resolverlo.", location: "Antequera, España" },
+  { client_name: "Laura Sánchez", rating: 5, text: "Muy buena experiencia. Recibí un asesoramiento muy claro desde la primera consulta y siempre sentí que mi caso estaba en buenas manos. Totalmente recomendable.", location: "Coín, España" },
+]
 
 function Testimonials() {
+  const [testimonials, setTestimonials] = useState(FALLBACK_TESTIMONIALS)
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const testimonials = [
-    {
-      name: "Antonio Ruiz",
-      rating: 5,
-      text: "Excelente profesional. Me asesoró en un asunto civil bastante complejo y desde el primer momento me transmitió seguridad y claridad. El resultado fue muy favorable y siempre estuvo disponible para resolver cualquier duda.",
-      location: "Málaga, España",
-    },
-    {
-      name: "María Fernández",
-      rating: 5,
-      text: "Gran trato y mucha profesionalidad. Eduardo Bernal llevó mi caso con total dedicación y me explicó cada paso del proceso legal de forma clara. Sin duda lo recomiendo.",
-      location: "Ronda, España",
-    },
-    {
-      name: "José Manuel García",
-      rating: 5,
-      text: "Un abogado muy serio y comprometido con su trabajo. Me ayudó con un procedimiento administrativo complicado y supo encontrar la mejor estrategia para resolverlo.",
-      location: "Antequera, España",
-    },
-    {
-      name: "Laura Sánchez",
-      rating: 5,
-      text: "Muy buena experiencia. Recibí un asesoramiento muy claro desde la primera consulta y siempre sentí que mi caso estaba en buenas manos. Totalmente recomendable.",
-      location: "Coín, España",
-    },
-  ];
+  useEffect(() => {
+    landingAPI.public.testimonials()
+      .then((res) => {
+        const data = res.data?.testimonials || res.data || []
+        if (data.length > 0) {
+          setTestimonials(data)
+          setCurrentIndex(0)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const nextTestimonial = () => {
     setCurrentIndex((prev) => (prev + 1) % testimonials.length);
@@ -40,7 +34,7 @@ function Testimonials() {
     );
   };
 
-  const currentTestimonial = testimonials[currentIndex];
+  const current = testimonials[currentIndex];
 
   return (
     <section
@@ -65,22 +59,22 @@ function Testimonials() {
 
             <div className="mb-8">
               <p className="text-xl text-gray-700 italic mb-6">
-                {currentTestimonial.text}
+                {current.text}
               </p>
 
               <div className="flex justify-center mb-4">
-                {[...Array(currentTestimonial.rating)].map((_, i) => (
-                  <span key={i} className="text-accent text-2xl">
-                    ★
-                  </span>
+                {[...Array(current.rating)].map((_, i) => (
+                  <span key={i} className="text-accent text-2xl">★</span>
                 ))}
               </div>
 
               <div className="text-center">
                 <p className="font-bold text-primary text-lg">
-                  {currentTestimonial.name}
+                  {current.client_name}
                 </p>
-                <p className="text-gray-600">{currentTestimonial.location}</p>
+                {current.location && (
+                  <p className="text-gray-600">{current.location}</p>
+                )}
               </div>
             </div>
 
@@ -90,15 +84,7 @@ function Testimonials() {
                 className="bg-primary hover:bg-primary-light text-white rounded-full p-3 transition-colors duration-300"
                 aria-label="Testimonio anterior"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                   <path d="M15 19l-7-7 7-7"></path>
                 </svg>
               </button>
@@ -108,9 +94,7 @@ function Testimonials() {
                   <button
                     key={index}
                     onClick={() => setCurrentIndex(index)}
-                    className={`w-3 h-3 rounded-full transition-colors duration-300 ${
-                      index === currentIndex ? "bg-accent" : "bg-gray-300"
-                    }`}
+                    className={`w-3 h-3 rounded-full transition-colors duration-300 ${index === currentIndex ? "bg-accent" : "bg-gray-300"}`}
                     aria-label={`Ir al testimonio ${index + 1}`}
                   />
                 ))}
@@ -121,15 +105,7 @@ function Testimonials() {
                 className="bg-primary hover:bg-primary-light text-white rounded-full p-3 transition-colors duration-300"
                 aria-label="Siguiente testimonio"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                   <path d="M9 5l7 7-7 7"></path>
                 </svg>
               </button>
