@@ -49,7 +49,7 @@ function ContactForm() {
         days_ahead: 60,
       });
 
-      const dates = response.data.dates || response.data.results || [];
+      const dates = response.data.available_dates || response.data.dates || response.data.results || [];
 
       const parsedDates = dates
         .map((item) => {
