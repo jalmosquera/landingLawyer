@@ -5,8 +5,8 @@
  * Features dark mode design with Figma colors.
  */
 
-import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HomeIcon,
   UserGroupIcon,
@@ -20,36 +20,53 @@ import {
   XMarkIcon,
   ArrowRightOnRectangleIcon,
   UserCircleIcon,
-} from '@heroicons/react/24/outline'
-import useAuthStore from '../stores/authStore'
+} from "@heroicons/react/24/outline";
+import useAuthStore from "../stores/authStore";
 
 function DashboardLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
 
   const navigation = [
-    { name: 'Inicio', href: '/dashboard/home', icon: HomeIcon },
-    { name: 'Clientes', href: '/dashboard/clients', icon: UserGroupIcon },
-    { name: 'Casos', href: '/dashboard/cases', icon: BriefcaseIcon },
-    { name: 'Documentos', href: '/dashboard/documents', icon: DocumentTextIcon },
-    { name: 'Citas', href: '/dashboard/appointments', icon: CalendarIcon },
-    { name: 'Disponibilidad', href: '/dashboard/availability', icon: ClockIcon },
-    { name: 'Landing Admin', href: '/dashboard/landing', icon: GlobeAltIcon },
-    { name: 'Panel Administrador', href: '/dashboard/admin', icon: ShieldCheckIcon, roles: ['boss'] },
-  ]
+    { name: "Inicio", href: "/dashboard/home", icon: HomeIcon },
+    { name: "Clientes", href: "/dashboard/clients", icon: UserGroupIcon },
+    { name: "Casos", href: "/dashboard/cases", icon: BriefcaseIcon },
+    {
+      name: "Documentos",
+      href: "/dashboard/documents",
+      icon: DocumentTextIcon,
+    },
+    { name: "Citas", href: "/dashboard/appointments", icon: CalendarIcon },
+    {
+      name: "Disponibilidad",
+      href: "/dashboard/availability",
+      icon: ClockIcon,
+    },
+    {
+      name: "Testimonios y servicios",
+      href: "/dashboard/landing",
+      icon: GlobeAltIcon,
+    },
+    {
+      name: "Panel Administrador",
+      href: "/dashboard/admin",
+      icon: ShieldCheckIcon,
+      roles: ["boss"],
+    },
+  ];
 
   const visibleNavigation = navigation.filter(
-    (item) => !item.roles || item.roles.includes(user?.role)
-  )
+    (item) => !item.roles || item.roles.includes(user?.role),
+  );
 
   const handleLogout = async () => {
-    await logout()
-    navigate('/login')
-  }
+    await logout();
+    navigate("/login");
+  };
 
-  const isActive = (path) => location.pathname === path
+  const isActive = (path) => location.pathname === path;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -64,7 +81,7 @@ function DashboardLayout({ children }) {
       {/* Mobile sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 transform transition-transform duration-300 ease-in-out lg:hidden ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between h-16 px-4 bg-gray-900">
@@ -86,8 +103,8 @@ function DashboardLayout({ children }) {
         </div>
         <nav className="mt-8 px-4">
           {visibleNavigation.map((item) => {
-            const Icon = item.icon
-            const active = isActive(item.href)
+            const Icon = item.icon;
+            const active = isActive(item.href);
             return (
               <Link
                 key={item.name}
@@ -95,14 +112,14 @@ function DashboardLayout({ children }) {
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
                   active
-                    ? 'bg-primary text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    ? "bg-primary text-white"
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
                 }`}
               >
                 <Icon className="h-5 w-5" />
                 <span className="font-medium">{item.name}</span>
               </Link>
-            )
+            );
           })}
         </nav>
       </div>
@@ -121,22 +138,22 @@ function DashboardLayout({ children }) {
           </div>
           <nav className="flex-1 mt-8 px-4">
             {visibleNavigation.map((item) => {
-              const Icon = item.icon
-              const active = isActive(item.href)
+              const Icon = item.icon;
+              const active = isActive(item.href);
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
                     active
-                      ? 'bg-primary text-white'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      ? "bg-primary text-white"
+                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   }`}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{item.name}</span>
                 </Link>
-              )
+              );
             })}
           </nav>
           {/* User info */}
@@ -200,7 +217,7 @@ function DashboardLayout({ children }) {
         </main>
       </div>
     </div>
-  )
+  );
 }
 
-export default DashboardLayout
+export default DashboardLayout;
