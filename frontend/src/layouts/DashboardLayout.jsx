@@ -15,6 +15,7 @@ import {
   CalendarIcon,
   ClockIcon,
   GlobeAltIcon,
+  ShieldCheckIcon,
   Bars3Icon,
   XMarkIcon,
   ArrowRightOnRectangleIcon,
@@ -36,7 +37,12 @@ function DashboardLayout({ children }) {
     { name: 'Citas', href: '/dashboard/appointments', icon: CalendarIcon },
     { name: 'Disponibilidad', href: '/dashboard/availability', icon: ClockIcon },
     { name: 'Landing Admin', href: '/dashboard/landing', icon: GlobeAltIcon },
+    { name: 'Panel Administrador', href: '/dashboard/admin', icon: ShieldCheckIcon, roles: ['boss'] },
   ]
+
+  const visibleNavigation = navigation.filter(
+    (item) => !item.roles || item.roles.includes(user?.role)
+  )
 
   const handleLogout = async () => {
     await logout()
@@ -79,7 +85,7 @@ function DashboardLayout({ children }) {
           </button>
         </div>
         <nav className="mt-8 px-4">
-          {navigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const Icon = item.icon
             const active = isActive(item.href)
             return (
@@ -114,7 +120,7 @@ function DashboardLayout({ children }) {
             </Link>
           </div>
           <nav className="flex-1 mt-8 px-4">
-            {navigation.map((item) => {
+            {visibleNavigation.map((item) => {
               const Icon = item.icon
               const active = isActive(item.href)
               return (
