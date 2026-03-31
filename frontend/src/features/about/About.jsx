@@ -22,10 +22,10 @@ const CAROUSEL_IMAGES = [
     alt: "Eduardo Bernal - Consejero",
     position: "center center",
   },
+  { src: "/eLanding.jpg", alt: "Eduardo Bernal", position: "center center" },
   { src: "/img2.jpg", alt: "Despacho", position: "center center" },
   { src: "/img3.jpg", alt: "Despacho", position: "center center" },
-  { src: "/img4.jpeg", alt: "Despacho", position: "center center" },
-  { src: "/eLanding.jpg", alt: "Eduardo Bernal", position: "center center" },
+  { src: "/img4.jpeg", alt: "Despacho", position: "center top" },
 ];
 
 function AboutCarousel() {
@@ -55,9 +55,7 @@ function AboutCarousel() {
             key={image.src}
             src={image.src}
             alt={image.alt}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
+            className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${image.fit === "contain" ? "object-contain bg-white" : "object-cover"} ${index === currentIndex ? "opacity-100" : "opacity-0"}`}
             style={{ objectPosition: image.position }}
           />
         ))}
