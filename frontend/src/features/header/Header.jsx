@@ -47,6 +47,14 @@ function Header() {
                   {item.label}
                 </a>
               ))}
+              {user?.role === "boss" && (
+                <button
+                  onClick={() => navigate("/dashboard/home")}
+                  className="hover:text-accent transition-colors duration-300 text-accent font-medium"
+                >
+                  Panel Administrador
+                </button>
+              )}
             </div>
 
             {/* Contact Button */}
@@ -190,6 +198,31 @@ function Header() {
                   </span>
                 </a>
               ))}
+              {user?.role === "boss" && (
+                <button
+                  onClick={() => {
+                    navigate("/dashboard/home");
+                    setIsMenuOpen(false);
+                  }}
+                  className={`flex items-baseline hover:text-accent transition-all duration-300 transform group w-full text-left ${
+                    isMenuOpen
+                      ? "translate-y-0 opacity-100"
+                      : "translate-y-12 opacity-0"
+                  }`}
+                  style={{
+                    transitionDelay: isMenuOpen
+                      ? `${menuItems.length * 100}ms`
+                      : "0ms",
+                  }}
+                >
+                  <span className="text-sm text-gray-400 mr-3 font-light">
+                    {String(menuItems.length + 1).padStart(2, "0")}—
+                  </span>
+                  <span className="text-xl font-light tracking-wide group-hover:translate-x-2 transition-transform duration-300 text-accent">
+                    Panel Administrador
+                  </span>
+                </button>
+              )}
             </div>
           </nav>
         </div>
