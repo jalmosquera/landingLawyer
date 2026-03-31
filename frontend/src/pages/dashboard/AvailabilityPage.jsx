@@ -175,11 +175,11 @@ function AvailabilityPage() {
   }
 
   return (
-    <div>
+    <div className="overflow-x-hidden">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-          <ClockIcon className="h-8 w-8 text-primary" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+          <ClockIcon className="h-7 w-7 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
           Configurar Disponibilidad
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -197,35 +197,36 @@ function AvailabilityPage() {
 
           return (
             <Card key={day.value} className="overflow-hidden">
-              <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                       {day.label}
                     </h3>
                     {hasActiveSlots ? (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 whitespace-nowrap">
                         Disponible
                       </span>
                     ) : (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 whitespace-nowrap">
                         No disponible
                       </span>
                     )}
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {activeSlots.length} horario{activeSlots.length !== 1 ? 's' : ''} activo{activeSlots.length !== 1 ? 's' : ''}
+                    <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                      {activeSlots.length} activo{activeSlots.length !== 1 ? 's' : ''}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     {hasActiveSlots && !isEditing && (
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={() => handleDisableAllDay(day.value)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        title="Desactivar día"
                       >
-                        <XMarkIcon className="h-4 w-4 mr-1" />
-                        Desactivar día
+                        <XMarkIcon className="h-4 w-4" />
+                        <span className="hidden sm:inline ml-1">Desactivar</span>
                       </Button>
                     )}
                     {!isEditing && (
@@ -233,9 +234,10 @@ function AvailabilityPage() {
                         variant="primary"
                         size="sm"
                         onClick={() => setEditingDay(day.value)}
+                        title="Agregar horario"
                       >
-                        <PlusIcon className="h-4 w-4 mr-1" />
-                        Agregar horario
+                        <PlusIcon className="h-4 w-4" />
+                        <span className="hidden sm:inline ml-1">Agregar</span>
                       </Button>
                     )}
                   </div>
@@ -249,13 +251,13 @@ function AvailabilityPage() {
                     {slots.map((slot) => (
                       <div
                         key={slot.id}
-                        className={`flex items-center justify-between p-3 rounded-lg border ${
+                        className={`flex items-center justify-between p-2 sm:p-3 rounded-lg border ${
                           slot.is_active
                             ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                             : 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 opacity-60'
                         }`}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 min-w-0">
                           <div className="text-sm">
                             <span className="font-medium text-gray-900 dark:text-white">
                               {slot.start_time} - {slot.end_time}
@@ -309,8 +311,8 @@ function AvailabilityPage() {
 
                 {/* Add New Slot Form */}
                 {isEditing && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Hora inicio
@@ -361,7 +363,7 @@ function AvailabilityPage() {
                         </select>
                       </div>
 
-                      <div className="flex items-end gap-2">
+                      <div className="flex items-end gap-2 sm:col-span-1 md:col-span-1">
                         <Button
                           variant="primary"
                           onClick={() => handleAddSlot(day.value)}
