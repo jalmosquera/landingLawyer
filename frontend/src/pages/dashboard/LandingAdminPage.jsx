@@ -5,7 +5,7 @@
  * Features: tabs interface, CRUD operations for each content type.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 import {
   PlusIcon,
   PencilIcon,
@@ -14,7 +14,7 @@ import {
   EyeSlashIcon,
   EnvelopeIcon,
   PhoneIcon,
-} from '@heroicons/react/24/outline'
+} from "@heroicons/react/24/outline";
 import {
   Button,
   Card,
@@ -23,288 +23,288 @@ import {
   LoadingSpinner,
   EmptyState,
   Badge,
-} from '../../components/ui'
-import { landingAPI } from '../../services/api'
+} from "../../components/ui";
+import { landingAPI } from "../../services/api";
 
 function LandingAdminPage() {
-  const [activeTab, setActiveTab] = useState('services')
-  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("services");
+  const [loading, setLoading] = useState(true);
 
   // Services state
-  const [services, setServices] = useState([])
-  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false)
-  const [selectedService, setSelectedService] = useState(null)
+  const [services, setServices] = useState([]);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
   const [serviceFormData, setServiceFormData] = useState({
-    title: '',
-    description: '',
-    icon: '',
+    title: "",
+    description: "",
+    icon: "",
     order: 0,
     is_active: true,
-  })
+  });
 
   // Testimonials state
-  const [testimonials, setTestimonials] = useState([])
-  const [isTestimonialModalOpen, setIsTestimonialModalOpen] = useState(false)
-  const [selectedTestimonial, setSelectedTestimonial] = useState(null)
+  const [testimonials, setTestimonials] = useState([]);
+  const [isTestimonialModalOpen, setIsTestimonialModalOpen] = useState(false);
+  const [selectedTestimonial, setSelectedTestimonial] = useState(null);
   const [testimonialFormData, setTestimonialFormData] = useState({
-    client_name: '',
-    text: '',
+    client_name: "",
+    text: "",
     rating: 5,
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split("T")[0],
     order: 0,
     is_active: true,
-  })
+  });
 
   // Contact Requests state
-  const [contactRequests, setContactRequests] = useState([])
-  const [selectedRequest, setSelectedRequest] = useState(null)
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
+  const [contactRequests, setContactRequests] = useState([]);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
-  const [formErrors, setFormErrors] = useState({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchData()
-  }, [activeTab])
+    fetchData();
+  }, [activeTab]);
 
   const fetchData = async () => {
     try {
-      setLoading(true)
-      if (activeTab === 'services') {
-        const response = await landingAPI.services.getAll()
-        setServices(response.data.results || response.data || [])
-      } else if (activeTab === 'testimonials') {
-        const response = await landingAPI.testimonials.getAll()
-        setTestimonials(response.data.results || response.data || [])
-      } else if (activeTab === 'requests') {
-        const response = await landingAPI.contactRequests.getAll()
-        setContactRequests(response.data.results || response.data || [])
+      setLoading(true);
+      if (activeTab === "services") {
+        const response = await landingAPI.services.getAll();
+        setServices(response.data.results || response.data || []);
+      } else if (activeTab === "testimonials") {
+        const response = await landingAPI.testimonials.getAll();
+        setTestimonials(response.data.results || response.data || []);
+      } else if (activeTab === "requests") {
+        const response = await landingAPI.contactRequests.getAll();
+        setContactRequests(response.data.results || response.data || []);
       }
     } catch (error) {
-      console.error('Error fetching data:', error)
+      console.error("Error fetching data:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Services handlers
   const handleOpenServiceModal = (service = null) => {
     if (service) {
-      setSelectedService(service)
+      setSelectedService(service);
       setServiceFormData({
-        title: service.title || '',
-        description: service.description || '',
-        icon: service.icon || '',
+        title: service.title || "",
+        description: service.description || "",
+        icon: service.icon || "",
         order: service.order || 0,
         is_active: service.is_active !== undefined ? service.is_active : true,
-      })
+      });
     } else {
-      setSelectedService(null)
+      setSelectedService(null);
       setServiceFormData({
-        title: '',
-        description: '',
-        icon: '',
+        title: "",
+        description: "",
+        icon: "",
         order: services.length,
         is_active: true,
-      })
+      });
     }
-    setFormErrors({})
-    setIsServiceModalOpen(true)
-  }
+    setFormErrors({});
+    setIsServiceModalOpen(true);
+  };
 
   const handleServiceSubmit = async (e) => {
-    e.preventDefault()
-    const errors = {}
-    if (!serviceFormData.title.trim()) errors.title = 'El título es requerido'
+    e.preventDefault();
+    const errors = {};
+    if (!serviceFormData.title.trim()) errors.title = "El título es requerido";
     if (!serviceFormData.description.trim())
-      errors.description = 'La descripción es requerida'
+      errors.description = "La descripción es requerida";
 
     if (Object.keys(errors).length > 0) {
-      setFormErrors(errors)
-      return
+      setFormErrors(errors);
+      return;
     }
 
     try {
-      setIsSubmitting(true)
+      setIsSubmitting(true);
       if (selectedService) {
-        await landingAPI.services.update(selectedService.id, serviceFormData)
+        await landingAPI.services.update(selectedService.id, serviceFormData);
       } else {
-        await landingAPI.services.create(serviceFormData)
+        await landingAPI.services.create(serviceFormData);
       }
-      await fetchData()
-      setIsServiceModalOpen(false)
+      await fetchData();
+      setIsServiceModalOpen(false);
     } catch (error) {
-      console.error('Error saving service:', error)
+      console.error("Error saving service:", error);
       setFormErrors({
-        general: 'Error al guardar el servicio. Intenta nuevamente.',
-      })
+        general: "Error al guardar el servicio. Intenta nuevamente.",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleDeleteService = async (id) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este servicio?'))
-      return
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este servicio?"))
+      return;
     try {
-      await landingAPI.services.delete(id)
-      await fetchData()
+      await landingAPI.services.delete(id);
+      await fetchData();
     } catch (error) {
-      console.error('Error deleting service:', error)
+      console.error("Error deleting service:", error);
     }
-  }
+  };
 
   const handleToggleServiceActive = async (service) => {
     try {
       await landingAPI.services.update(service.id, {
         ...service,
         is_active: !service.is_active,
-      })
-      await fetchData()
+      });
+      await fetchData();
     } catch (error) {
-      console.error('Error updating service:', error)
+      console.error("Error updating service:", error);
     }
-  }
+  };
 
   // Testimonials handlers
   const handleOpenTestimonialModal = (testimonial = null) => {
     if (testimonial) {
-      setSelectedTestimonial(testimonial)
+      setSelectedTestimonial(testimonial);
       setTestimonialFormData({
-        client_name: testimonial.client_name || '',
-        text: testimonial.text || '',
+        client_name: testimonial.client_name || "",
+        text: testimonial.text || "",
         rating: testimonial.rating || 5,
         date: testimonial.date
-          ? new Date(testimonial.date).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0],
+          ? new Date(testimonial.date).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
         order: testimonial.order || 0,
         is_active:
           testimonial.is_active !== undefined ? testimonial.is_active : true,
-      })
+      });
     } else {
-      setSelectedTestimonial(null)
+      setSelectedTestimonial(null);
       setTestimonialFormData({
-        client_name: '',
-        text: '',
+        client_name: "",
+        text: "",
         rating: 5,
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split("T")[0],
         order: testimonials.length,
         is_active: true,
-      })
+      });
     }
-    setFormErrors({})
-    setIsTestimonialModalOpen(true)
-  }
+    setFormErrors({});
+    setIsTestimonialModalOpen(true);
+  };
 
   const handleTestimonialSubmit = async (e) => {
-    e.preventDefault()
-    const errors = {}
+    e.preventDefault();
+    const errors = {};
     if (!testimonialFormData.client_name.trim())
-      errors.client_name = 'El nombre es requerido'
+      errors.client_name = "El nombre es requerido";
     if (!testimonialFormData.text.trim())
-      errors.text = 'El testimonio es requerido'
+      errors.text = "El testimonio es requerido";
 
     if (Object.keys(errors).length > 0) {
-      setFormErrors(errors)
-      return
+      setFormErrors(errors);
+      return;
     }
 
     try {
-      setIsSubmitting(true)
+      setIsSubmitting(true);
       if (selectedTestimonial) {
         await landingAPI.testimonials.update(
           selectedTestimonial.id,
-          testimonialFormData
-        )
+          testimonialFormData,
+        );
       } else {
-        await landingAPI.testimonials.create(testimonialFormData)
+        await landingAPI.testimonials.create(testimonialFormData);
       }
-      await fetchData()
-      setIsTestimonialModalOpen(false)
+      await fetchData();
+      setIsTestimonialModalOpen(false);
     } catch (error) {
-      console.error('Error saving testimonial:', error)
+      console.error("Error saving testimonial:", error);
       setFormErrors({
-        general: 'Error al guardar el testimonio. Intenta nuevamente.',
-      })
+        general: "Error al guardar el testimonio. Intenta nuevamente.",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleDeleteTestimonial = async (id) => {
     if (
-      !window.confirm('¿Estás seguro de que deseas eliminar este testimonio?')
+      !window.confirm("¿Estás seguro de que deseas eliminar este testimonio?")
     )
-      return
+      return;
     try {
-      await landingAPI.testimonials.delete(id)
-      await fetchData()
+      await landingAPI.testimonials.delete(id);
+      await fetchData();
     } catch (error) {
-      console.error('Error deleting testimonial:', error)
+      console.error("Error deleting testimonial:", error);
     }
-  }
+  };
 
   const handleToggleTestimonialActive = async (testimonial) => {
     try {
       await landingAPI.testimonials.update(testimonial.id, {
         ...testimonial,
         is_active: !testimonial.is_active,
-      })
-      await fetchData()
+      });
+      await fetchData();
     } catch (error) {
-      console.error('Error updating testimonial:', error)
+      console.error("Error updating testimonial:", error);
     }
-  }
+  };
 
   // Contact Requests handlers
   const handleViewRequest = (request) => {
-    setSelectedRequest(request)
-    setIsRequestModalOpen(true)
-  }
+    setSelectedRequest(request);
+    setIsRequestModalOpen(true);
+  };
 
   const handleUpdateRequestStatus = async (id, status) => {
     try {
-      await landingAPI.contactRequests.update(id, { status })
-      await fetchData()
+      await landingAPI.contactRequests.update(id, { status });
+      await fetchData();
     } catch (error) {
-      console.error('Error updating request status:', error)
+      console.error("Error updating request status:", error);
     }
-  }
+  };
 
   const getRequestStatusColor = (status) => {
     const colors = {
-      new: 'primary',
-      in_progress: 'info',
-      contacted: 'warning',
-      converted: 'success',
-      closed: 'default',
-    }
-    return colors[status] || 'default'
-  }
+      new: "primary",
+      in_progress: "info",
+      contacted: "warning",
+      converted: "success",
+      closed: "default",
+    };
+    return colors[status] || "default";
+  };
 
   const getRequestStatusLabel = (status) => {
     const labels = {
-      new: 'Nueva',
-      in_progress: 'En Proceso',
-      contacted: 'Contactado',
-      converted: 'Convertido',
-      closed: 'Cerrado',
-    }
-    return labels[status] || status
-  }
+      new: "Nueva",
+      in_progress: "En Proceso",
+      contacted: "Contactado",
+      converted: "Convertido",
+      closed: "Cerrado",
+    };
+    return labels[status] || status;
+  };
 
   const tabs = [
-    { id: 'services', label: 'Servicios' },
-    { id: 'testimonials', label: 'Testimonios' },
-    { id: 'requests', label: 'Consultas' },
-  ]
+    { id: "services", label: "Servicios" },
+    { id: "testimonials", label: "Testimonios" },
+    { id: "requests", label: "Consultas" },
+  ];
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner size="lg" text="Cargando..." />
       </div>
-    )
+    );
   }
 
   return (
@@ -312,7 +312,7 @@ function LandingAdminPage() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Landing Admin
+          Testimonios y Servicios
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           Gestiona el contenido de la página pública
@@ -329,8 +329,8 @@ function LandingAdminPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-primary text-primary dark:text-accent'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                    ? "border-primary text-primary dark:text-accent"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 }`}
               >
                 {tab.label}
@@ -341,13 +341,13 @@ function LandingAdminPage() {
       </div>
 
       {/* Services Tab */}
-      {activeTab === 'services' && (
+      {activeTab === "services" && (
         <div>
           <Card className="mb-6">
             <div className="flex justify-between items-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Los servicios aparecerán en la sección "Áreas de Práctica" de
-                la landing page
+                Los servicios aparecerán en la sección "Áreas de Práctica" de la
+                landing page
               </p>
               <Button
                 variant="primary"
@@ -406,13 +406,9 @@ function LandingAdminPage() {
                       <Table.Cell>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() =>
-                              handleToggleServiceActive(service)
-                            }
+                            onClick={() => handleToggleServiceActive(service)}
                             className="p-1 text-gray-600 hover:bg-gray-50 rounded dark:text-gray-400 dark:hover:bg-gray-700"
-                            title={
-                              service.is_active ? 'Desactivar' : 'Activar'
-                            }
+                            title={service.is_active ? "Desactivar" : "Activar"}
                           >
                             {service.is_active ? (
                               <EyeIcon className="h-5 w-5" />
@@ -446,7 +442,7 @@ function LandingAdminPage() {
       )}
 
       {/* Testimonials Tab */}
-      {activeTab === 'testimonials' && (
+      {activeTab === "testimonials" && (
         <div>
           <Card className="mb-6">
             <div className="flex justify-between items-center">
@@ -501,13 +497,11 @@ function LandingAdminPage() {
                       </Table.Cell>
                       <Table.Cell>
                         <div className="flex items-center">
-                          {'⭐'.repeat(testimonial.rating || 0)}
+                          {"⭐".repeat(testimonial.rating || 0)}
                         </div>
                       </Table.Cell>
                       <Table.Cell>
-                        {new Date(testimonial.date).toLocaleDateString(
-                          'es-ES'
-                        )}
+                        {new Date(testimonial.date).toLocaleDateString("es-ES")}
                       </Table.Cell>
                       <Table.Cell>
                         {testimonial.is_active ? (
@@ -528,9 +522,7 @@ function LandingAdminPage() {
                             }
                             className="p-1 text-gray-600 hover:bg-gray-50 rounded dark:text-gray-400 dark:hover:bg-gray-700"
                             title={
-                              testimonial.is_active
-                                ? 'Desactivar'
-                                : 'Activar'
+                              testimonial.is_active ? "Desactivar" : "Activar"
                             }
                           >
                             {testimonial.is_active ? (
@@ -569,7 +561,7 @@ function LandingAdminPage() {
       )}
 
       {/* Contact Requests Tab */}
-      {activeTab === 'requests' && (
+      {activeTab === "requests" && (
         <div>
           <Card className="mb-6">
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -617,12 +609,12 @@ function LandingAdminPage() {
                       </Table.Cell>
                       <Table.Cell>
                         <div className="max-w-xs truncate">
-                          {request.subject || '-'}
+                          {request.subject || "-"}
                         </div>
                       </Table.Cell>
                       <Table.Cell>
                         {new Date(request.created_at).toLocaleDateString(
-                          'es-ES'
+                          "es-ES",
                         )}
                       </Table.Cell>
                       <Table.Cell>
@@ -631,7 +623,7 @@ function LandingAdminPage() {
                           onChange={(e) =>
                             handleUpdateRequestStatus(
                               request.id,
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className="text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
@@ -665,7 +657,7 @@ function LandingAdminPage() {
       <Modal
         isOpen={isServiceModalOpen}
         onClose={() => setIsServiceModalOpen(false)}
-        title={selectedService ? 'Editar Servicio' : 'Nuevo Servicio'}
+        title={selectedService ? "Editar Servicio" : "Nuevo Servicio"}
         size="lg"
       >
         <form onSubmit={handleServiceSubmit}>
@@ -692,8 +684,8 @@ function LandingAdminPage() {
                   }
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
                     formErrors.title
-                      ? 'border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-gray-600"
                   }`}
                   placeholder="Ej: Derecho Penal"
                 />
@@ -719,8 +711,8 @@ function LandingAdminPage() {
                   rows="3"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
                     formErrors.description
-                      ? 'border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-gray-600"
                   }`}
                   placeholder="Descripción del servicio..."
                 />
@@ -782,7 +774,7 @@ function LandingAdminPage() {
               isLoading={isSubmitting}
               disabled={isSubmitting}
             >
-              {selectedService ? 'Guardar Cambios' : 'Crear Servicio'}
+              {selectedService ? "Guardar Cambios" : "Crear Servicio"}
             </Button>
           </Modal.Footer>
         </form>
@@ -792,9 +784,7 @@ function LandingAdminPage() {
       <Modal
         isOpen={isTestimonialModalOpen}
         onClose={() => setIsTestimonialModalOpen(false)}
-        title={
-          selectedTestimonial ? 'Editar Testimonio' : 'Nuevo Testimonio'
-        }
+        title={selectedTestimonial ? "Editar Testimonio" : "Nuevo Testimonio"}
         size="lg"
       >
         <form onSubmit={handleTestimonialSubmit}>
@@ -821,8 +811,8 @@ function LandingAdminPage() {
                   }
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
                     formErrors.client_name
-                      ? 'border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-gray-600"
                   }`}
                   placeholder="Ej: Juan Pérez"
                 />
@@ -848,15 +838,13 @@ function LandingAdminPage() {
                   rows="4"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white ${
                     formErrors.text
-                      ? 'border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
+                      ? "border-red-500"
+                      : "border-gray-300 dark:border-gray-600"
                   }`}
                   placeholder="Testimonio del cliente..."
                 />
                 {formErrors.text && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formErrors.text}
-                  </p>
+                  <p className="text-red-500 text-sm mt-1">{formErrors.text}</p>
                 )}
               </div>
 
@@ -950,7 +938,7 @@ function LandingAdminPage() {
               isLoading={isSubmitting}
               disabled={isSubmitting}
             >
-              {selectedTestimonial ? 'Guardar Cambios' : 'Crear Testimonio'}
+              {selectedTestimonial ? "Guardar Cambios" : "Crear Testimonio"}
             </Button>
           </Modal.Footer>
         </form>
@@ -1013,18 +1001,14 @@ function LandingAdminPage() {
                   Fecha de Solicitud
                 </h4>
                 <p className="text-gray-900 dark:text-white">
-                  {new Date(selectedRequest.created_at).toLocaleString(
-                    'es-ES'
-                  )}
+                  {new Date(selectedRequest.created_at).toLocaleString("es-ES")}
                 </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
                   Estado
                 </h4>
-                <Badge
-                  variant={getRequestStatusColor(selectedRequest.status)}
-                >
+                <Badge variant={getRequestStatusColor(selectedRequest.status)}>
                   {getRequestStatusLabel(selectedRequest.status)}
                 </Badge>
               </div>
@@ -1032,16 +1016,13 @@ function LandingAdminPage() {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="ghost"
-            onClick={() => setIsRequestModalOpen(false)}
-          >
+          <Button variant="ghost" onClick={() => setIsRequestModalOpen(false)}>
             Cerrar
           </Button>
         </Modal.Footer>
       </Modal>
     </div>
-  )
+  );
 }
 
-export default LandingAdminPage
+export default LandingAdminPage;
