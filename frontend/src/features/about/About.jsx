@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from "react";
 import {
   FaBalanceScale,
   FaGem,
@@ -5,7 +6,95 @@ import {
   FaUsers,
   FaComments,
   FaStar,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
+
+const CAROUSEL_IMAGES = [
+  {
+    src: "/eduardoEvolutionPark.png",
+    alt: "Eduardo Bernal - Evolution Park",
+    position: "center center",
+    fit: "contain",
+  },
+  {
+    src: "/Consejero.jpg",
+    alt: "Eduardo Bernal - Consejero",
+    position: "center center",
+  },
+  { src: "/img2.jpg", alt: "Despacho", position: "center center" },
+  { src: "/img3.jpg", alt: "Despacho", position: "center center" },
+  { src: "/img4.jpeg", alt: "Despacho", position: "center center" },
+  { src: "/eLanding.jpg", alt: "Eduardo Bernal", position: "center center" },
+];
+
+function AboutCarousel() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const next = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
+  }, []);
+
+  const prev = () => {
+    setCurrentIndex(
+      (prev) => (prev - 1 + CAROUSEL_IMAGES.length) % CAROUSEL_IMAGES.length,
+    );
+  };
+
+  useEffect(() => {
+    const interval = setInterval(next, 4000);
+    return () => clearInterval(interval);
+  }, [next]);
+
+  return (
+    <div className="relative w-full rounded-lg shadow-md overflow-hidden">
+      {/* Images */}
+      <div className="relative aspect-[4/3]">
+        {CAROUSEL_IMAGES.map((image, index) => (
+          <img
+            key={image.src}
+            src={image.src}
+            alt={image.alt}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+              index === currentIndex ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ objectPosition: image.position }}
+          />
+        ))}
+      </div>
+
+      {/* Prev / Next buttons */}
+      <button
+        onClick={prev}
+        className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors duration-200"
+        aria-label="Anterior"
+      >
+        <FaChevronLeft className="w-4 h-4" />
+      </button>
+      <button
+        onClick={next}
+        className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors duration-200"
+        aria-label="Siguiente"
+      >
+        <FaChevronRight className="w-4 h-4" />
+      </button>
+
+      {/* Dots */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+        {CAROUSEL_IMAGES.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
+              index === currentIndex ? "bg-white" : "bg-white/40"
+            }`}
+            aria-label={`Ir a imagen ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function About() {
   const values = [
@@ -44,13 +133,9 @@ function About() {
 
         {/* Meet Attorney Section */}
         <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-8 mb-16">
-          {/* Imagen */}
+          {/* Carrusel */}
           <div className="mb-8">
-            <img
-              src="/eduardoEvolutionPark.png"
-              alt="Eduardo Bernal Fernández"
-              className="w-full rounded-lg shadow-md"
-            />
+            <AboutCarousel />
           </div>
 
           {/* Texto */}
@@ -129,7 +214,6 @@ function About() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {values.map((value, index) => {
               const IconComponent = value.icon;
-
               return (
                 <div
                   key={index}
