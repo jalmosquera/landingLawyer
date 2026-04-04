@@ -5,9 +5,10 @@
  * Handles routing for landing, dashboard, and portal sections.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from './stores/authStore';
+import { landingAPI } from './services/api';
 
 // Components
 import ProtectedRoute from './components/ProtectedRoute';
@@ -22,6 +23,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import DocumentVerify from './pages/DocumentVerify';
+import SiteDisabled from './pages/SiteDisabled';
 
 // Dashboard pages (staff)
 import DashboardHome from './pages/dashboard/DashboardHome';
@@ -40,11 +42,39 @@ import PortalAppointmentsPage from './pages/portal/PortalAppointmentsPage';
 
 function App() {
   const { loadUser } = useAuthStore();
+  const [siteStatus, setSiteStatus] = useState(null); // null = loading
 
   // Load user from localStorage on app start
   useEffect(() => {
     loadUser();
   }, [loadUser]);
+
+  // Check if the site is currently active (payment / manual disable control)
+  useEffect(() => {
+    landingAPI.public.siteStatus()
+      .then((res) => setSiteStatus(res.data))
+      .catch(() => setSiteStatus({ is_active: true })); // fail open — don't block on API error
+  }, []);
+
+  // While checking site status, render nothing (avoids flash of content)
+  if (siteStatus === null) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Site is disabled — admins can still access /admin (served by Django, not React)
+  if (!siteStatus.is_active) {
+    return (
+      <SiteDisabled
+        title={siteStatus.maintenance_title}
+        message={siteStatus.maintenance_message}
+        contactEmail={siteStatus.contact_email}
+      />
+    );
+  }
 
   return (
     <BrowserRouter>

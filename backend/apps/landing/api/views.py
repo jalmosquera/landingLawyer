@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Count, Q
 
-from apps.landing.models import Service, Testimonial, SuccessCase, ContactRequest
+from apps.landing.models import Service, Testimonial, SuccessCase, ContactRequest, SiteSettings
 from core.permissions import IsStaff
 from .serializers import (
     ServiceSerializer,
@@ -337,3 +337,29 @@ class ContactRequestViewSet(viewsets.ModelViewSet):
             'type_breakdown': type_dict,
             'recent_requests': ContactRequestSerializer(recent_requests, many=True).data
         })
+
+
+class PublicSiteStatusView(views.APIView):
+    """
+    Public endpoint to check if the site is currently active.
+
+    GET /api/public/site-status/
+
+    Returns site active status and maintenance info if disabled.
+    No authentication required — called on every app load.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        settings = SiteSettings.get_settings()
+        data = {
+            'is_active': settings.is_site_active,
+        }
+        if not settings.is_site_active:
+            data.update({
+                'maintenance_title': settings.maintenance_title,
+                'maintenance_message': settings.maintenance_message,
+                'contact_email': settings.contact_email,
+            })
+        return Response(data)

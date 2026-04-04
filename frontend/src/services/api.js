@@ -282,6 +282,8 @@ export const landingAPI = {
     successCases: () => api.get("/public/success-cases/"),
 
     contactRequest: (data) => api.post("/public/contact-requests/", data),
+
+    siteStatus: () => api.get("/public/site-status/"),
   },
 
   // Staff endpoints

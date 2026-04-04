@@ -12,7 +12,8 @@ from .views import (
     PublicServiceView,
     PublicTestimonialView,
     PublicSuccessCaseView,
-    PublicContactRequestView
+    PublicContactRequestView,
+    PublicSiteStatusView,
 )
 
 # Create router instance
@@ -46,5 +47,10 @@ urlpatterns = router.urls + [
         'public/contact-requests/',
         PublicContactRequestView.as_view(),
         name='public-contact-request'
+    ),
+    path(
+        'public/site-status/',
+        PublicSiteStatusView.as_view(),
+        name='public-site-status'
     ),
 ]

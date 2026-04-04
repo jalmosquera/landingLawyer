@@ -317,3 +317,90 @@ class ContactRequest(models.Model):
     def is_converted(self):
         """Check if request was converted to a client."""
         return self.status == 'converted'
+
+
+class SiteSettings(models.Model):
+    """
+    Singleton model for site-wide settings including payment control.
+
+    Allows the admin to set a payment deadline. If today's date exceeds
+    the deadline (or if manually disabled), the public site shows a
+    maintenance/payment-required page instead of the normal content.
+
+    Only one instance of this model should exist (use get_settings()).
+
+    Attributes:
+        payment_deadline: Date after which the site is auto-disabled if unpaid.
+        is_manually_disabled: Override to disable the site regardless of date.
+        maintenance_title: Title shown on the disabled page.
+        maintenance_message: Message shown to visitors when site is disabled.
+        contact_email: Contact email displayed on the disabled page.
+        updated_at: Last modification timestamp.
+
+    Example:
+        >>> settings = SiteSettings.get_settings()
+        >>> settings.payment_deadline = date(2026, 5, 1)
+        >>> settings.save()
+        >>> settings.is_site_active  # False if today > May 1st 2026
+    """
+
+    payment_deadline = models.DateField(
+        'Fecha límite de pago',
+        null=True,
+        blank=True,
+        help_text=(
+            'Si hoy supera esta fecha y el sitio no está pagado, '
+            'se mostrará la página de mantenimiento automáticamente.'
+        )
+    )
+    is_manually_disabled = models.BooleanField(
+        'Deshabilitar manualmente',
+        default=False,
+        help_text='Activa esta opción para deshabilitar el sitio de inmediato, sin importar la fecha.'
+    )
+    maintenance_title = models.CharField(
+        'Título de la página de mantenimiento',
+        max_length=200,
+        default='Sitio temporalmente no disponible',
+    )
+    maintenance_message = models.TextField(
+        'Mensaje para los visitantes',
+        default=(
+            'Este sitio web se encuentra temporalmente fuera de servicio. '
+            'Si eres el titular, por favor comunícate con nosotros para regularizar '
+            'el servicio. Disculpa los inconvenientes.'
+        ),
+        help_text='Texto que verán los visitantes cuando el sitio esté inhabilitado.'
+    )
+    contact_email = models.EmailField(
+        'Correo de contacto',
+        blank=True,
+        help_text='Correo que se mostrará en la página de mantenimiento.'
+    )
+    updated_at = models.DateTimeField('Última actualización', auto_now=True)
+
+    class Meta:
+        db_table = 'landing_site_settings'
+        verbose_name = 'Configuración del Sitio'
+        verbose_name_plural = 'Configuración del Sitio'
+
+    def __str__(self):
+        status = '🔴 Deshabilitado' if not self.is_site_active else '🟢 Activo'
+        deadline = self.payment_deadline.strftime('%d/%m/%Y') if self.payment_deadline else 'Sin fecha'
+        return f"Configuración del sitio — {status} · Fecha límite: {deadline}"
+
+    @property
+    def is_site_active(self):
+        """Return True if the site should be publicly accessible."""
+        if self.is_manually_disabled:
+            return False
+        if self.payment_deadline:
+            from django.utils import timezone
+            return timezone.now().date() <= self.payment_deadline
+        return True
+
+    @classmethod
+    def get_settings(cls):
+        """Return the singleton settings instance, creating it if needed."""
+        instance, _ = cls.objects.get_or_create(pk=1)
+        return instance
