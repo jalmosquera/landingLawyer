@@ -59,7 +59,7 @@ function SiteDisabled({
           <img
             src="ms-icon-removebg-preview.png"
             alt="MosqueraSoft"
-            className="w-48 h-48 object-contain rounded-2xl"
+            className="w-24 h-24 sm:w-44 sm:h-44 md:w-52 md:h-52 object-contain rounded-2xl"
             style={{
               filter:
                 "drop-shadow(0 0 8px #f97316) drop-shadow(0 0 24px rgba(249,115,22,0.5))",
