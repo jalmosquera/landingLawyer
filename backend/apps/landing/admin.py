@@ -181,9 +181,21 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         )
     days_remaining.short_description = 'Días restantes'
 
+    def has_module_perms(self, request, app_label=None):
+        """Visible only to superusers."""
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        """Accessible only to superusers."""
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        """Editable only to superusers."""
+        return request.user.is_superuser
+
     def has_add_permission(self, request):
-        """Only allow one instance."""
-        return not SiteSettings.objects.exists()
+        """Only allow one instance, and only superusers."""
+        return request.user.is_superuser and not SiteSettings.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         """Prevent deletion of the settings singleton."""

@@ -20,6 +20,20 @@ from .serializers import (
 )
 
 
+def _site_disabled_response():
+    """Return a 503 response with maintenance info when the site is disabled."""
+    settings = SiteSettings.get_settings()
+    return Response(
+        {
+            'site_disabled': True,
+            'maintenance_title': settings.maintenance_title,
+            'maintenance_message': settings.maintenance_message,
+            'contact_email': settings.contact_email,
+        },
+        status=status.HTTP_503_SERVICE_UNAVAILABLE,
+    )
+
+
 class PublicServiceView(views.APIView):
     """
     Public endpoint for listing active services.
@@ -33,6 +47,9 @@ class PublicServiceView(views.APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        if not SiteSettings.get_settings().is_site_active:
+            return _site_disabled_response()
+
         services = Service.objects.filter(is_active=True).order_by('order', 'title')
         serializer = ServiceSerializer(services, many=True)
 
@@ -55,7 +72,9 @@ class PublicTestimonialView(views.APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        # Optional: limit number of testimonials
+        if not SiteSettings.get_settings().is_site_active:
+            return _site_disabled_response()
+
         limit = request.query_params.get('limit', None)
 
         testimonials = Testimonial.objects.filter(is_active=True).order_by('order', '-date')
@@ -87,7 +106,9 @@ class PublicSuccessCaseView(views.APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        # Optional: filter by case_type
+        if not SiteSettings.get_settings().is_site_active:
+            return _site_disabled_response()
+
         case_type = request.query_params.get('case_type', None)
         limit = request.query_params.get('limit', None)
 
@@ -122,6 +143,9 @@ class PublicContactRequestView(views.APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        if not SiteSettings.get_settings().is_site_active:
+            return _site_disabled_response()
+
         serializer = PublicContactRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

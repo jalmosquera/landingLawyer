@@ -41,7 +41,7 @@ import PortalDocumentsPage from './pages/portal/PortalDocumentsPage';
 import PortalAppointmentsPage from './pages/portal/PortalAppointmentsPage';
 
 function App() {
-  const { loadUser } = useAuthStore();
+  const { loadUser, user } = useAuthStore();
   const [siteStatus, setSiteStatus] = useState(null); // null = loading
 
   // Load user from localStorage on app start
@@ -52,8 +52,14 @@ function App() {
   // Check if the site is currently active (payment / manual disable control)
   useEffect(() => {
     landingAPI.public.siteStatus()
-      .then((res) => setSiteStatus(res.data))
-      .catch(() => setSiteStatus({ is_active: true })); // fail open — don't block on API error
+      .then((res) => {
+        console.log('[SiteStatus] response:', res.data);
+        setSiteStatus(res.data);
+      })
+      .catch((err) => {
+        console.error('[SiteStatus] API call failed — defaulting to active:', err);
+        setSiteStatus({ is_active: true });
+      });
   }, []);
 
   // While checking site status, render nothing (avoids flash of content)
@@ -65,8 +71,9 @@ function App() {
     );
   }
 
-  // Site is disabled — admins can still access /admin (served by Django, not React)
-  if (!siteStatus.is_active) {
+  // Site is disabled — staff (boss/employe) can still access the dashboard
+  const isStaff = user && (user.role === 'boss' || user.role === 'employe');
+  if (!siteStatus.is_active && !isStaff) {
     return (
       <SiteDisabled
         title={siteStatus.maintenance_title}
