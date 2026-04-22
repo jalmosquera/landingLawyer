@@ -1,6 +1,6 @@
-# landingLawyer
+# Eduardo Bernal Abogado Platform
 
-> Professional legal platform for managing clients, appointments, and secure document delivery.
+> Full-stack legal platform for client acquisition, appointment management, secure document delivery, and client portal access.
 
 [![Django](https://img.shields.io/badge/Django-5.2.3-green.svg)](https://www.djangoproject.com/)
 [![DRF](https://img.shields.io/badge/DRF-3.16.0-red.svg)](https://www.django-rest-framework.org/)
@@ -8,451 +8,404 @@
 [![Vite](https://img.shields.io/badge/Vite-5.0.0-purple.svg)](https://vitejs.dev/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.3.5-38bdf8.svg)](https://tailwindcss.com/)
 
+**Live site:** https://eduardobernalabogado.es
+
 [English](#english) | [Español](#español)
 
 ---
 
 ## English
 
-### 📋 Project Overview
+## Overview
 
-landingLawyer is a comprehensive digital platform designed for legal professionals to centralize client communication, manage appointments seamlessly, and deliver legal documents securely without depending on traditional messaging apps like WhatsApp.
+This project is not just a marketing website.
 
-### ✨ Key Features
+It is a full-stack legal platform built for a law firm to centralize public client acquisition, internal case-related operations, appointment scheduling, and secure document delivery without relying on informal channels such as WhatsApp for sensitive files.
 
-#### 🎯 Current Features (Implemented)
+The public website is only one part of the system. Behind it, the platform includes authenticated staff workflows, client portal access, appointment availability logic, secure document access flows, and audit-ready delivery mechanisms.
 
-- ✅ **Professional Landing Page**
-  - Hero section with compelling call-to-action
-  - Practice areas showcase
-  - Client testimonials
-  - Contact form
-  - Responsive design with custom color scheme (Navy #013048 & Gold #fbb03c)
+## Core Value
 
-- ✅ **Backend Infrastructure**
-  - Django 5.2.3 + Django REST Framework 3.16
-  - PostgreSQL database with complete migrations
-  - JWT authentication system
-  - API documentation with Swagger/ReDoc (drf-spectacular)
-  - Modular app architecture (users, clients, reports, tokens, appointments, landing)
+The platform solves four practical problems for a legal practice:
 
-- ✅ **Development Environment**
-  - Monorepo structure (backend/ + frontend/)
-  - Feature-Sliced Design architecture for frontend
-  - Ruff for Python linting and formatting
-  - pytest configuration for testing
-  - Docker support
-  - GitHub Actions CI/CD pipeline
+- Present the firm professionally online and capture qualified leads
+- Organize clients and case-related workflows from a private admin environment
+- Let potential clients request appointments without exposing the lawyer’s personal phone number
+- Deliver sensitive documents through controlled, expiring access flows instead of sending files directly over chat apps
 
-#### 🚀 Planned Features (Coming Soon)
+## Main Capabilities
 
-- 🔨 **Client Management System**
-  - Complete CRUD operations for client records
-  - Contact information and case notes
-  - Communication logs and history
-  - Advanced search and filtering
+### 1. Public legal website
+- Professional firm presentation
+- Practice areas and trust-building content
+- Contact and lead capture flows
+- Responsive interface adapted for mobile and desktop
 
-- 🔨 **Appointment Scheduling**
-  - Google Calendar integration
-  - Automatic Google Meet link generation
-  - Email notifications for appointments
-  - Conflict detection and availability checking
-  - No personal phone number exposure
+### 2. Client management
+- Internal client CRUD
+- Client search and filtering
+- Portal-access-aware workflows
+- Client profile access from a protected portal
 
-- 🔨 **Secure Document Delivery**
-  - Token-based access control (no client login required)
-  - Unique, time-limited access tokens
-  - AWS S3 integration for PDF storage
-  - Pre-signed URLs for secure downloads
-  - Download tracking and audit logs
-  - Configurable expiration dates
-  - Single-use or multi-use token options
+### 3. Appointment system
+- Internal appointment management
+- Public appointment request flow without authentication
+- Public availability checking by date and duration
+- Lawyer availability configuration
+- Appointment confirmation and cancellation flows
+- Google Calendar synchronization
+- Google Meet link generation
+- WhatsApp notification link generation when needed
 
-- 🔨 **Admin Dashboard**
-  - Client management interface
-  - Report upload and organization
-  - Appointment calendar view
-  - Token generation and management
-  - Communication logs viewer
-  - Analytics and statistics
+### 4. Secure document delivery
+- Document upload and management
+- Client notification flow for new documents
+- Access-code validation flow
+- Expiring download tokens
+- One-time-use access logic
+- Download audit trail with access logs
+- Controlled delivery of sensitive documents
+- Client-side document portal access
 
-- 🔨 **Email Notifications**
-  - Brevo integration (300 emails/day free tier)
-  - Appointment confirmations
-  - Document availability alerts
-  - Reminder notifications
+### 5. Client portal
+- Authenticated access to personal profile
+- Access to own appointments
+- Access to own documents
+- Ability to upload documents to owned cases
 
-### 🏗️ Tech Stack
+## Why this project matters
 
-#### Backend
-- **Framework**: Django 5.2.3 + Django REST Framework 3.16.0
-- **Database**: PostgreSQL (SQLite for development)
-- **Authentication**: JWT (djangorestframework-simplejwt)
-- **API Docs**: drf-spectacular (Swagger/ReDoc)
-- **File Storage**: AWS S3 + django-storages
-- **Testing**: pytest + pytest-django
-- **Linting**: Ruff
-- **Server**: Gunicorn + Whitenoise
+Legal workflows are not just about showing a nice website.
 
-#### Frontend
-- **Framework**: React 18.2.0
-- **Build Tool**: Vite 5.0.0
-- **Styling**: TailwindCSS 3.3.5
-- **State Management**: Zustand
-- **Routing**: React Router DOM
-- **Forms**: React Hook Form + Zod
-- **Icons**: React Icons + Heroicons
-- **HTTP Client**: Axios
+A serious legal platform needs:
+- structured client data
+- access control
+- appointment coordination
+- secure document exchange
+- traceability
 
-#### External Services
-- **Calendar**: Google Calendar API v3
-- **Email**: Brevo API (300 emails/day free tier)
-- **File Storage**: AWS S3 (5GB free tier)
-- **Deployment**: Railway (backend) + Vercel (frontend)
+This project was designed around those operational needs, not only around visual presentation.
 
-### 📦 Project Structure
+## Architecture
 
-```
+This repository follows a monorepo structure with clearly separated frontend and backend responsibilities.
+
+### Backend
+- Django + Django REST Framework
+- Modular app-based architecture
+- JWT authentication
+- PostgreSQL-ready
+- OpenAPI documentation with Swagger/ReDoc
+- S3-ready document storage support
+- Role-based access control
+
+### Frontend
+- React + Vite
+- TailwindCSS
+- Zustand
+- React Router
+- Form handling and validation with React Hook Form + Zod
+
+## Domain Modules
+
+### Backend apps
+- `users` — authentication and user roles
+- `clients` — client records and portal linkage
+- `cases` — legal case structure
+- `documents` — secure document workflows
+- `appointments` — scheduling, availability, calendar sync
+- `landing` — public-facing website and contact flows
+
+## Security-Oriented Design
+
+This project includes security decisions aligned with legal-service needs:
+
+- JWT-based authenticated access
+- Protected staff-only endpoints
+- Separate client portal permissions
+- Expiring document access flows
+- Single-use download tokens
+- Access attempt tracking
+- Download logs and audit trail
+- Configurable expiration windows
+- Support for secure external file storage
+
+The goal is simple: reduce friction for the client while keeping sensitive material under control.
+
+## Tech Stack
+
+### Backend
+- Django
+- Django REST Framework
+- PostgreSQL
+- SimpleJWT
+- drf-spectacular
+- django-storages
+- Gunicorn
+- Whitenoise
+- pytest
+- Ruff
+
+### Frontend
+- React
+- Vite
+- TailwindCSS
+- Zustand
+- React Router DOM
+- React Hook Form
+- Zod
+- Axios
+- Heroicons / React Icons
+
+### External integrations
+- Google Calendar API
+- Google Meet
+- AWS S3
+- Email provider integration
+- Railway
+- Vercel
+
+## Project Structure
+
+```bash
 landingLawyer/
-├── backend/                    # Django backend
-│   ├── apps/                   # Django applications
-│   │   ├── users/             # User management & JWT auth
-│   │   ├── clients/           # Client records & notes
-│   │   ├── reports/           # Legal reports management
-│   │   ├── tokens/            # Secure access tokens
-│   │   ├── appointments/      # Scheduling & Google Calendar
-│   │   └── landing/           # Contact form handling
-│   ├── core/                   # Django project settings
+├── backend/
+│   ├── apps/
+│   │   ├── users/
+│   │   ├── clients/
+│   │   ├── cases/
+│   │   ├── documents/
+│   │   ├── appointments/
+│   │   └── landing/
+│   ├── core/
 │   ├── manage.py
-│   ├── requirements.txt
-│   ├── pytest.ini
-│   ├── ruff.toml
-│   └── Dockerfile
+│   └── requirements.txt
 │
-├── frontend/                   # React frontend
+├── frontend/
 │   ├── src/
-│   │   ├── features/          # Feature-Sliced Design
-│   │   │   ├── auth/
-│   │   │   ├── clients/
-│   │   │   ├── reports/
-│   │   │   ├── appointments/
-│   │   │   └── landing/
-│   │   ├── shared/            # Shared components & utils
-│   │   ├── pages/             # Page components
-│   │   ├── store/             # Zustand stores
-│   │   └── App.jsx
 │   ├── package.json
-│   ├── vite.config.js
-│   └── tailwind.config.js
+│   └── vite.config.js
 │
 ├── .github/
-│   └── workflows/             # CI/CD pipelines
-├── docs/                       # Documentation
+├── docs/
 ├── docker-compose.yml
 └── README.md
 ```
 
-### 🚀 Getting Started
+## API and Documentation
 
-#### Prerequisites
+When running locally, documentation is available at:
 
-- Python 3.12+
-- Node.js 18+
-- PostgreSQL 14+ (optional for development)
-- Git
+- Swagger UI: `/api/docs/`
+- ReDoc: `/api/redoc/`
+- OpenAPI Schema: `/api/schema/`
 
-#### Installation
+## Deployment
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/jalmosquera/landingLawyer.git
-cd landingLawyer
-```
+- **Frontend:** Vercel
+- **Backend:** Railway
+- **Production domain:** https://eduardobernalabogado.es
 
-2. **Backend Setup**
-```bash
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+## Author
 
-# Install dependencies
-pip install -r backend/requirements.txt
-
-# Copy environment file
-cp backend/.env.example backend/.env
-
-# Run migrations
-python backend/manage.py migrate
-
-# Create superuser
-python backend/manage.py createsuperuser
-
-# Run development server
-python backend/manage.py runserver
-```
-
-3. **Frontend Setup**
-```bash
-# Navigate to frontend directory
-cd frontend
-
-# Install dependencies
-npm install
-
-# Copy environment file
-cp .env.example .env
-
-# Run development server
-npm run dev
-```
-
-### 🔑 Environment Variables
-
-#### Backend (.env)
-```bash
-# Django
-SECRET_KEY=your-secret-key
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/landinglawyer
-
-# AWS S3
-USE_S3=False
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_STORAGE_BUCKET_NAME=landinglawyer-reports
-AWS_S3_REGION_NAME=us-east-1
-
-# Google Calendar API
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-client-secret
-
-# Brevo Email
-BREVO_API_KEY=your-brevo-api-key
-BREVO_SENDER_EMAIL=noreply@landinglawyer.com
-
-# CORS
-CORS_ALLOWED_ORIGINS=http://localhost:5173
-```
-
-#### Frontend (.env)
-```bash
-VITE_API_URL=http://localhost:8000/api
-```
-
-### 🧪 Testing
-
-```bash
-# Backend tests
-cd backend
-pytest
-pytest --cov=apps --cov-report=html
-
-# Frontend tests
-cd frontend
-npm test
-npm run test:coverage
-```
-
-### 🎨 Design System
-
-**Color Palette**:
-- Primary (Navy): `#013048` (Main), `#001f2e` (Dark), `#024563` (Light)
-- Accent (Gold): `#fbb03c` (Main), `#e09a1f` (Dark), `#fcc066` (Light)
-
-### 📱 API Documentation
-
-Once the development server is running, access the API documentation at:
-
-- **Swagger UI**: http://localhost:8000/api/docs/
-- **ReDoc**: http://localhost:8000/api/redoc/
-- **OpenAPI Schema**: http://localhost:8000/api/schema/
-
-### 🚢 Deployment
-
-#### Backend (Railway)
-```bash
-# Railway will automatically detect and deploy Django
-# Configure environment variables in Railway dashboard
-```
-
-#### Frontend (Vercel)
-```bash
-# Deploy with Vercel CLI
-vercel
-
-# Or connect GitHub repository to Vercel dashboard
-```
-
-### 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### 📄 License
-
-This project is private and confidential.
-
-### 👤 Author
-
-**Jose Alberto Mosquera**
-- GitHub: [@jalmosquera](https://github.com/jalmosquera)
-
-### 🙏 Acknowledgments
-
-- Built with Django, React, and modern web technologies
-- Designed for legal professionals
-- Focused on security, privacy, and user experience
+**Jose Alberto Mosquera**  
+GitHub: [@jalmosquera](https://github.com/jalmosquera)
 
 ---
 
 ## Español
 
-### 📋 Descripción del Proyecto
+## Descripción general
 
-landingLawyer es una plataforma digital integral diseñada para profesionales legales que centraliza la comunicación con clientes, gestiona citas de manera fluida y entrega documentos legales de forma segura sin depender de aplicaciones de mensajería tradicionales como WhatsApp.
+Este proyecto no es solo una web corporativa.
 
-### ✨ Características Principales
+Es una **plataforma legal full-stack** creada para un despacho de abogados, pensada para centralizar la captación pública de clientes, la operativa interna del despacho, la gestión de citas y la entrega segura de documentos sin depender de canales informales como WhatsApp para archivos sensibles.
 
-#### 🎯 Características Actuales (Implementadas)
+La web pública es solo una parte del sistema. Detrás de ella hay flujos autenticados para personal del despacho, acceso para clientes, lógica de disponibilidad para citas y mecanismos de entrega documental con control de acceso y trazabilidad.
 
-- ✅ **Página de Aterrizaje Profesional**
-  - Sección hero con llamados a la acción
-  - Showcase de áreas de práctica
-  - Testimonios de clientes
-  - Formulario de contacto
-  - Diseño responsive con esquema de colores personalizado (Navy #013048 & Dorado #fbb03c)
+## Qué resuelve
 
-- ✅ **Infraestructura Backend**
-  - Django 5.2.3 + Django REST Framework 3.16
-  - Base de datos PostgreSQL con migraciones completas
-  - Sistema de autenticación JWT
-  - Documentación API con Swagger/ReDoc (drf-spectacular)
-  - Arquitectura modular de apps (users, clients, reports, tokens, appointments, landing)
+La plataforma ataca cuatro problemas reales del trabajo jurídico:
 
-- ✅ **Entorno de Desarrollo**
-  - Estructura monorepo (backend/ + frontend/)
-  - Arquitectura Feature-Sliced Design para frontend
-  - Ruff para linting y formateo de Python
-  - Configuración pytest para testing
-  - Soporte Docker
-  - Pipeline CI/CD con GitHub Actions
+- Mostrar el despacho de forma profesional y captar clientes potenciales
+- Organizar clientes y flujos internos desde un entorno privado
+- Permitir solicitudes de cita sin exponer el teléfono personal del abogado
+- Entregar documentación sensible mediante accesos controlados y temporales en lugar de enviar archivos directamente por apps de mensajería
 
-#### 🚀 Características Planificadas (Próximamente)
+## Capacidades principales
 
-- 🔨 **Sistema de Gestión de Clientes**
-  - Operaciones CRUD completas para registros de clientes
-  - Información de contacto y notas de casos
-  - Logs y historial de comunicación
-  - Búsqueda avanzada y filtrado
+### 1. Web pública del despacho
+- Presentación profesional del abogado
+- Áreas de práctica y contenido de confianza
+- Formularios de contacto y captación
+- Interfaz responsive para móvil y escritorio
 
-- 🔨 **Programación de Citas**
-  - Integración con Google Calendar
-  - Generación automática de enlaces Google Meet
-  - Notificaciones por email para citas
-  - Detección de conflictos y verificación de disponibilidad
-  - Sin exposición de número telefónico personal
+### 2. Gestión de clientes
+- CRUD interno de clientes
+- Búsqueda y filtrado
+- Gestión según acceso al portal
+- Perfil del cliente accesible desde portal protegido
 
-- 🔨 **Entrega Segura de Documentos**
-  - Control de acceso basado en tokens (sin login de cliente requerido)
-  - Tokens de acceso únicos y con límite de tiempo
-  - Integración AWS S3 para almacenamiento de PDFs
-  - URLs pre-firmadas para descargas seguras
-  - Seguimiento de descargas y logs de auditoría
-  - Fechas de expiración configurables
-  - Opciones de tokens de un solo uso o múltiples usos
+### 3. Sistema de citas
+- Gestión interna de citas
+- Solicitud pública de citas sin login
+- Consulta pública de disponibilidad por fecha y duración
+- Configuración de disponibilidad del abogado
+- Confirmación y cancelación de citas
+- Sincronización con Google Calendar
+- Generación de enlace de Google Meet
+- Generación de enlace de WhatsApp cuando hace falta
 
-- 🔨 **Panel de Administración**
-  - Interfaz de gestión de clientes
-  - Carga y organización de reportes
-  - Vista de calendario de citas
-  - Generación y gestión de tokens
-  - Visor de logs de comunicación
-  - Analíticas y estadísticas
+### 4. Entrega segura de documentos
+- Subida y gestión de documentos
+- Notificación al cliente cuando hay documentación disponible
+- Validación mediante código de acceso
+- Tokens temporales de descarga
+- Descargas de un solo uso
+- Registro de accesos y trazabilidad
+- Entrega controlada de documentos sensibles
+- Acceso a documentos desde el portal del cliente
 
-- 🔨 **Notificaciones por Email**
-  - Integración con Brevo (300 emails/día tier gratuito)
-  - Confirmaciones de citas
-  - Alertas de disponibilidad de documentos
-  - Notificaciones de recordatorio
+### 5. Portal del cliente
+- Acceso autenticado a su perfil
+- Consulta de sus citas
+- Consulta de sus documentos
+- Subida de documentos a sus propios casos
 
-### 🚀 Comenzar
+## Por qué este proyecto tiene más peso que una “landing”
 
-#### Prerrequisitos
+Un despacho serio no necesita solo una página bonita.
 
-- Python 3.12+
-- Node.js 18+
-- PostgreSQL 14+ (opcional para desarrollo)
-- Git
+Necesita:
+- datos estructurados de clientes
+- control de acceso
+- coordinación de citas
+- intercambio seguro de documentación
+- trazabilidad de accesos
 
-#### Instalación
+Este proyecto fue planteado alrededor de esas necesidades operativas, no solo alrededor del diseño visual.
 
-1. **Clonar el repositorio**
+## Arquitectura
+
+El repositorio usa una estructura monorepo con separación clara entre frontend y backend.
+
+### Backend
+- Django + Django REST Framework
+- Arquitectura modular por apps
+- Autenticación JWT
+- Base de datos PostgreSQL
+- Documentación OpenAPI con Swagger/ReDoc
+- Soporte para almacenamiento documental en S3
+- Control de acceso por roles
+
+### Frontend
+- React + Vite
+- TailwindCSS
+- Zustand
+- React Router
+- Formularios con React Hook Form + Zod
+
+## Módulos de dominio
+
+### Apps del backend
+- `users` — autenticación y roles
+- `clients` — clientes y acceso al portal
+- `cases` — estructura de casos jurídicos
+- `documents` — flujos de entrega documental segura
+- `appointments` — citas, disponibilidad y sincronización con calendario
+- `landing` — parte pública del sitio
+
+## Enfoque de seguridad
+
+La plataforma incorpora decisiones técnicas pensadas para un entorno jurídico:
+
+- acceso autenticado con JWT
+- endpoints protegidos para personal del despacho
+- permisos diferenciados para clientes
+- accesos documentales con expiración
+- tokens de descarga de un solo uso
+- trazabilidad de intentos de acceso
+- logs de descarga y auditoría
+- ventanas de expiración configurables
+- soporte para almacenamiento externo seguro
+
+La idea es sencilla: facilitarle el acceso al cliente sin perder control sobre documentación sensible.
+
+## Stack tecnológico
+
+### Backend
+- Django
+- Django REST Framework
+- PostgreSQL
+- SimpleJWT
+- drf-spectacular
+- django-storages
+- Gunicorn
+- Whitenoise
+- pytest
+- Ruff
+
+### Frontend
+- React
+- Vite
+- TailwindCSS
+- Zustand
+- React Router DOM
+- React Hook Form
+- Zod
+- Axios
+- Heroicons / React Icons
+
+### Integraciones externas
+- Google Calendar API
+- Google Meet
+- AWS S3
+- integración con email
+- Railway
+- Vercel
+
+## Estructura del proyecto
+
 ```bash
-git clone https://github.com/jalmosquera/landingLawyer.git
-cd landingLawyer
+landingLawyer/
+├── backend/
+│   ├── apps/
+│   │   ├── users/
+│   │   ├── clients/
+│   │   ├── cases/
+│   │   ├── documents/
+│   │   ├── appointments/
+│   │   └── landing/
+│   ├── core/
+│   ├── manage.py
+│   └── requirements.txt
+│
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.js
+│
+├── .github/
+├── docs/
+├── docker-compose.yml
+└── README.md
 ```
 
-2. **Configuración del Backend**
-```bash
-# Crear entorno virtual
-python -m venv .venv
-source .venv/bin/activate  # En Windows: .venv\Scripts\activate
+## API y documentación
 
-# Instalar dependencias
-pip install -r backend/requirements.txt
+En local, la documentación queda disponible en:
 
-# Copiar archivo de entorno
-cp backend/.env.example backend/.env
+- Swagger UI: `/api/docs/`
+- ReDoc: `/api/redoc/`
+- OpenAPI Schema: `/api/schema/`
 
-# Ejecutar migraciones
-python backend/manage.py migrate
+## Despliegue
 
-# Crear superusuario
-python backend/manage.py createsuperuser
+- **Frontend:** Vercel
+- **Backend:** Railway
+- **Dominio de producción:** https://eduardobernalabogado.es
 
-# Ejecutar servidor de desarrollo
-python backend/manage.py runserver
-```
+## Autor
 
-3. **Configuración del Frontend**
-```bash
-# Navegar al directorio frontend
-cd frontend
-
-# Instalar dependencias
-npm install
-
-# Copiar archivo de entorno
-cp .env.example .env
-
-# Ejecutar servidor de desarrollo
-npm run dev
-```
-
-### 📱 Acceso
-
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **Admin Django**: http://localhost:8000/admin
-- **API Docs**: http://localhost:8000/api/docs
-
-### 📄 Licencia
-
-Este proyecto es privado y confidencial.
-
-### 👤 Autor
-
-**Jose Alberto Mosquera**
-- GitHub: [@jalmosquera](https://github.com/jalmosquera)
-
----
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+**Jose Alberto Mosquera**  
+GitHub: [@jalmosquera](https://github.com/jalmosquera)
