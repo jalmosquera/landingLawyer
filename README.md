@@ -407,5 +407,5 @@ En local, la documentación queda disponible en:
 
 ## Autor
 
-**Jose Alberto Mosquera**  
+**Jalberth Mosquera**  
 GitHub: [@jalmosquera](https://github.com/jalmosquera)
