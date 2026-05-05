@@ -361,14 +361,14 @@ class SiteSettings(models.Model):
     maintenance_title = models.CharField(
         'Título de la página de mantenimiento',
         max_length=200,
-        default='Sitio temporalmente no disponible',
+        default='Tu sitio web está temporalmente suspendido',
     )
     maintenance_message = models.TextField(
         'Mensaje para los visitantes',
         default=(
-            'Este sitio web se encuentra temporalmente fuera de servicio. '
-            'Si eres el titular, por favor comunícate con nosotros para regularizar '
-            'el servicio. Disculpa los inconvenientes.'
+            'El acceso a este sitio ha sido suspendido. '
+            'Si sos el titular, regularizá tu situación de pago para reactivarlo de inmediato. '
+            'Una vez confirmado el pago, el sitio estará disponible nuevamente en minutos.'
         ),
         help_text='Texto que verán los visitantes cuando el sitio esté inhabilitado.'
     )

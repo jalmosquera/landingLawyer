@@ -5,11 +5,11 @@
  * Uses MosqueraSoft brand colors: black background, orange (#f97316) accents.
  */
 
-const DEFAULT_TITLE = "Tu sitio web está temporalmente inactivo";
+const DEFAULT_TITLE = "Tu sitio web está temporalmente suspendido";
 const DEFAULT_MESSAGE =
-  "Hemos detectado un pago pendiente asociado a este servicio. " +
-  "Para reactivar tu sitio, por favor regulariza tu cuenta con nuestro equipo. " +
-  "Una vez confirmado el pago, tu sitio estará disponible nuevamente en minutos.";
+  "El acceso a este sitio ha sido suspendido. " +
+  "Si sos el titular, regularizá tu situación de pago para reactivarlo de inmediato. " +
+  "Una vez confirmado el pago, el sitio estará disponible nuevamente en minutos.";
 
 function SiteDisabled({
   title = DEFAULT_TITLE,
@@ -114,9 +114,6 @@ function SiteDisabled({
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-black text-white leading-tight mb-1 text-center">
-            Tu sitio web está
-          </h1>
           <h1
             className="text-2xl font-black leading-tight mb-6 text-center"
             style={{
@@ -126,7 +123,7 @@ function SiteDisabled({
               backgroundClip: "text",
             }}
           >
-            temporalmente inactivo
+            {title}
           </h1>
 
           {/* Divider */}
@@ -141,20 +138,10 @@ function SiteDisabled({
 
           {/* Message */}
           <p
-            className="text-sm leading-relaxed mb-3 text-center"
+            className="text-sm leading-relaxed mb-8 text-center"
             style={{ color: "#a1a1aa" }}
           >
-            Hemos detectado un{" "}
-            <strong className="text-zinc-200">pago pendiente</strong> asociado a
-            este servicio. Para reactivar tu sitio, por favor regulariza tu
-            cuenta con nuestro equipo.
-          </p>
-          <p
-            className="text-sm leading-relaxed mb-8 text-center"
-            style={{ color: "#71717a" }}
-          >
-            Una vez confirmado el pago, tu sitio estará disponible nuevamente en
-            minutos. Gracias por tu comprensión. 🙏
+            {message}
           </p>
 
           {/* CTA */}
