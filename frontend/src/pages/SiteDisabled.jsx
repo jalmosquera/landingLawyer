@@ -57,9 +57,9 @@ function SiteDisabled({
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <img
-            src="ms-icon-removebg-preview.png"
+            src="ms-icon.jpg"
             alt="MosqueraSoft"
-            className="w-[120px] h-[120px] sm:w-44 sm:h-44 md:w-52 md:h-52 object-contain rounded-2xl"
+            className="w-32 h-32 sm:w-48 sm:h-48 md:w-56 md:h-56 object-contain rounded-2xl"
             style={{
               filter:
                 "drop-shadow(0 0 8px #f97316) drop-shadow(0 0 24px rgba(249,115,22,0.5))",
