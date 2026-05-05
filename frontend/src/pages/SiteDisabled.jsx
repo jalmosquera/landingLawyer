@@ -57,14 +57,10 @@ function SiteDisabled({
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <img
-            src="ms-icon-removebg-preview.png"
+            src="ms-icon.jpg"
             alt="MosqueraSoft"
-            className="w-40 h-auto sm:w-52 md:w-60"
-            style={{
-              filter:
-                "drop-shadow(0 0 8px #f97316) drop-shadow(0 0 24px rgba(249,115,22,0.5))",
-              animation: "neon-pulse 3s ease-in-out infinite",
-            }}
+            className="w-32 h-auto sm:w-40 md:w-48 rounded-2xl"
+            style={{ animation: "neon-pulse 3s ease-in-out infinite" }}
           />
         </div>
 
@@ -202,8 +198,8 @@ function SiteDisabled({
       {/* Neon pulse keyframe injected */}
       <style>{`
         @keyframes neon-pulse {
-          0%, 100% { filter: drop-shadow(0 0 8px #f97316) drop-shadow(0 0 20px rgba(249,115,22,0.5)); }
-          50%       { filter: drop-shadow(0 0 16px #f97316) drop-shadow(0 0 40px rgba(249,115,22,0.8)); }
+          0%, 100% { filter: brightness(1) saturate(1.1); }
+          50%       { filter: brightness(1.3) saturate(1.5); }
         }
       `}</style>
     </div>
