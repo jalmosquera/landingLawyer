@@ -66,7 +66,8 @@ function Hero() {
           </p>
 
           <p className="text-sm md:text-xl mb-6 md:mb-8 max-w-md md:max-w-2xl leading-relaxed">
-            Más de 25 años de experiencia chupando verga
+            Más de 25 años de experiencia en Derecho Penal, Civil y
+            Contencioso-Administrativo
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
