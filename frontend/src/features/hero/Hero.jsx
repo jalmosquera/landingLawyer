@@ -31,7 +31,7 @@ function Hero() {
       <div className="absolute inset-0 hidden md:block">
         {desktopImages.map((image, index) => {
           const positions = [
-            "78% 0%", // landing1234.jpg
+            "78% 0%", // landing.jpg
             "50% 18%", // img2.jpg
             "50% 12%", // img3.jpg
             "50% 12%", // img4.jpeg
@@ -66,8 +66,7 @@ function Hero() {
           </p>
 
           <p className="text-sm md:text-xl mb-6 md:mb-8 max-w-md md:max-w-2xl leading-relaxed">
-            Más de 25 años de experiencia en Derecho Penal, Civil y
-            Contencioso-Administrativo
+            Más de 25 años de experiencia chupando verga
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
