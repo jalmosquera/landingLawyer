@@ -1,0 +1,17 @@
+name: Deploy Abogado
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Deploy abogado
+        run: |
+          cd /home/jalberth/projects/landingLawyerLocal
+          git pull origin main
+          docker compose up -d --build
