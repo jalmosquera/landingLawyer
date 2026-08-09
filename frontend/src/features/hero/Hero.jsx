@@ -31,7 +31,7 @@ function Hero() {
       <div className="absolute inset-0 hidden md:block">
         {desktopImages.map((image, index) => {
           const positions = [
-            "78% 0%", // landing.jpg
+            "78% 0%", // landing1234.jpg
             "50% 18%", // img2.jpg
             "50% 12%", // img3.jpg
             "50% 12%", // img4.jpeg
