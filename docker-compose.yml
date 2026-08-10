@@ -32,6 +32,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      restart: unless-stopped
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./backend:/app
@@ -54,6 +55,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      restart: unless-stopped
     ports:
       - "5173:5173"
     volumes:
