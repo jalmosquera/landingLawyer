@@ -12,3 +12,10 @@ rules:
 
 The full Ruff profile and `ruff format --check` will be enabled in a dedicated
 cleanup change after the legacy codebase has been reviewed and normalized.
+
+## Test coverage
+
+The current suite has a verified global coverage of 55.45%. CI enforces a 55%
+floor so coverage cannot regress while additional tests are added. Restoring the
+previous 60% threshold requires a dedicated test-coverage initiative, rather
+than excluding untested production modules or weakening test execution.
