@@ -24,6 +24,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import DocumentVerify from './pages/DocumentVerify';
 import SiteDisabled from './pages/SiteDisabled';
+import CookiePolicy from './pages/CookiePolicy';
 
 // Dashboard pages (staff)
 import DashboardHome from './pages/dashboard/DashboardHome';
@@ -91,6 +92,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/documents/verify" element={<DocumentVerify />} />
+        <Route path="/politica-de-cookies" element={<CookiePolicy />} />
 
         {/* Dashboard routes (staff only) */}
         <Route
