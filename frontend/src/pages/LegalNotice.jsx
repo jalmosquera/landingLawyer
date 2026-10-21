@@ -31,7 +31,7 @@ function LegalNotice() {
             </p>
             <ul className="mt-3 list-inside list-disc space-y-1">
               <li>Teléfono: +34 607 43 39 25</li>
-              <li>Correo electrónico: eduardoberla@gmail.com</li>
+              <li>Correo electrónico: eduardobernalabogado@gmail.com</li>
               <li>
                 Colegiado nº 4941 del Ilustre Colegio de Abogados de Málaga.
               </li>
