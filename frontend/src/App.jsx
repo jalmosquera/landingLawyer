@@ -25,6 +25,7 @@ import Register from './pages/Register';
 import DocumentVerify from './pages/DocumentVerify';
 import SiteDisabled from './pages/SiteDisabled';
 import CookiePolicy from './pages/CookiePolicy';
+import LegalNotice from './pages/LegalNotice';
 
 // Dashboard pages (staff)
 import DashboardHome from './pages/dashboard/DashboardHome';
@@ -93,6 +94,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/documents/verify" element={<DocumentVerify />} />
         <Route path="/politica-de-cookies" element={<CookiePolicy />} />
+        <Route path="/aviso-legal" element={<LegalNotice />} />
 
         {/* Dashboard routes (staff only) */}
         <Route

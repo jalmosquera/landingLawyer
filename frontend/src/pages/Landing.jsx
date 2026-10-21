@@ -12,6 +12,7 @@ import PracticeAreas from '../features/practice-areas/PracticeAreas';
 import Testimonials from '../features/testimonials/Testimonials';
 import Footer from '../features/footer/Footer';
 import CookieInformationNotice from '../components/CookieInformationNotice';
+import WhatsAppButton from '../components/WhatsAppButton';
 
 function Landing() {
   return (
@@ -26,6 +27,7 @@ function Landing() {
       </main>
       <Footer />
       <CookieInformationNotice />
+      <WhatsAppButton />
     </div>
   );
 }
