@@ -89,7 +89,9 @@ function Header() {
                   </button>
                 </>
               )}
-              <button className="btn-accent">Consulta Gratuita</button>
+              <a href="#contact" className="btn-accent">
+                Consulta Gratuita
+              </a>
             </div>
 
             {/* Mobile Menu Button */}
@@ -97,6 +99,8 @@ function Header() {
               className="md:hidden relative w-8 h-8 flex flex-col justify-center items-center focus:outline-none group"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Toggle menu"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-navigation"
             >
               <span
                 className={`block w-7 h-0.5 bg-white transition-all duration-300 ${
@@ -142,6 +146,7 @@ function Header() {
 
       {/* Fullwidth Mobile Menu */}
       <div
+        id="mobile-navigation"
         className={`fixed inset-0 w-screen h-screen text-white transition-transform duration-500 ease-in-out md:hidden z-50 flex flex-col ${
           isMenuOpen ? "translate-y-0" : "-translate-y-full"
         }`}
@@ -295,9 +300,13 @@ function Header() {
               </>
             )}
 
-            <button className="btn-accent w-full mt-3">
+            <a
+              href="#contact"
+              onClick={() => setIsMenuOpen(false)}
+              className="btn-accent w-full mt-3 text-center"
+            >
               Consulta Gratuita
-            </button>
+            </a>
           </div>
         </div>
       </div>
