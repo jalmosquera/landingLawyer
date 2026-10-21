@@ -43,26 +43,6 @@ function PortalCasesPage() {
     }
   }
 
-  const getCaseStatusColor = (status) => {
-    const colors = {
-      open: 'primary',
-      in_progress: 'info',
-      closed: 'success',
-      archived: 'default',
-    }
-    return colors[status] || 'default'
-  }
-
-  const getStatusLabel = (status) => {
-    const labels = {
-      open: 'Abierto',
-      in_progress: 'En Progreso',
-      closed: 'Cerrado',
-      archived: 'Archivado',
-    }
-    return labels[status] || status
-  }
-
   const getCaseTypeLabel = (type) => {
     const labels = {
       civil: 'Civil',

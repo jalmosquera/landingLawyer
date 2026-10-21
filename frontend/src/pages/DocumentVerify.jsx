@@ -21,7 +21,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
-import { Button, Card, LoadingSpinner } from '../components/ui'
+import { Button, Card } from '../components/ui'
 import { documentsAPI } from '../services/api'
 import useAuthStore from '../stores/authStore'
 
@@ -407,7 +407,7 @@ function DocumentVerify() {
 
             {/* Documents List */}
             <div className="space-y-4">
-              {documents.map((doc, index) => {
+              {documents.map((doc) => {
                 const isDownloading = downloadingTokens.has(doc.download_token)
                 const isDownloaded = downloadedTokens.has(doc.download_token)
 

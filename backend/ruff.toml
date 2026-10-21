@@ -1,6 +1,20 @@
 # Ruff configuration for landingLawyer
 # Replaces Black + flake8 + isort
 
+exclude = [
+    ".git",
+    "__pycache__",
+    "migrations",
+    "venv",
+    "env",
+    ".venv",
+    "staticfiles",
+    "media",
+]
+
+# Same as Black
+line-length = 88
+
 [lint]
 # Enable specific rule sets
 select = [
@@ -26,21 +40,6 @@ ignore = [
 # Allow autofix for all enabled rules
 fixable = ["ALL"]
 unfixable = []
-
-# Exclude directories
-exclude = [
-    ".git",
-    "__pycache__",
-    "migrations",
-    "venv",
-    "env",
-    ".venv",
-    "staticfiles",
-    "media",
-]
-
-# Same as Black
-line-length = 88
 
 [format]
 # Use Black-compatible formatting
