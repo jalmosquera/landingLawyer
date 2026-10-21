@@ -269,6 +269,8 @@ function ContactForm() {
               <div
                 ref={messageRef}
                 className="mb-6 p-6 bg-green-100 border-2 border-green-500 text-green-800 rounded-lg shadow-lg animate-pulse"
+                role="status"
+                aria-live="polite"
               >
                 <p className="font-bold text-lg flex items-center gap-2">
                   <span className="text-2xl">✓</span>
@@ -288,6 +290,7 @@ function ContactForm() {
               <div
                 ref={messageRef}
                 className="mb-6 p-6 bg-red-100 border-2 border-red-500 text-red-800 rounded-lg shadow-lg"
+                role="alert"
               >
                 <p className="font-bold text-lg flex items-center gap-2">
                   <span className="text-2xl">✗</span>
@@ -311,13 +314,17 @@ function ContactForm() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
+                  aria-invalid={Boolean(errors.name)}
+                  aria-describedby={errors.name ? "name-error" : undefined}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent ${
                     errors.name ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="Juan Pérez"
                 />
                 {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                  <p id="name-error" className="text-red-500 text-sm mt-1">
+                    {errors.name}
+                  </p>
                 )}
               </div>
 
@@ -334,13 +341,17 @@ function ContactForm() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? "email-error" : undefined}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent ${
                     errors.email ? "border-red-500" : "border-gray-300"
                   }`}
                   placeholder="juan@ejemplo.com"
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  <p id="email-error" className="text-red-500 text-sm mt-1">
+                    {errors.email}
+                  </p>
                 )}
               </div>
             </div>
@@ -447,6 +458,7 @@ function ContactForm() {
             <button
               type="submit"
               disabled={isSubmitting}
+              aria-busy={isSubmitting}
               className={`w-full btn-accent text-lg py-4 ${
                 isSubmitting ? "opacity-70 cursor-not-allowed" : ""
               }`}

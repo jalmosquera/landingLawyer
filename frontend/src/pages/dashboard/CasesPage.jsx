@@ -6,13 +6,11 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import {
   PlusIcon,
   MagnifyingGlassIcon,
   PencilIcon,
   TrashIcon,
-  EyeIcon,
   DocumentTextIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline'
@@ -27,10 +25,8 @@ import {
   RichTextEditor,
 } from '../../components/ui'
 import { casesAPI, clientsAPI, documentsAPI } from '../../services/api'
-import useAuthStore from '../../stores/authStore'
 
 function CasesPage() {
-  const { user } = useAuthStore()
   const [cases, setCases] = useState([])
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)

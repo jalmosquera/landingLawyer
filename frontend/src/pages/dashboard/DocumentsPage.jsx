@@ -7,7 +7,6 @@
 
 import { useState, useEffect } from 'react'
 import {
-  PlusIcon,
   DocumentArrowUpIcon,
   BellIcon,
   CheckCircleIcon,

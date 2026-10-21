@@ -158,10 +158,10 @@ function Footer() {
                 Política de Privacidad
               </a>
               <a
-                href="#"
+                href="/aviso-legal"
                 className="text-gray-300 hover:text-accent transition-colors duration-300"
               >
-                Términos de Servicio
+                Aviso legal
               </a>
             </div>
           </div>

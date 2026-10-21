@@ -203,8 +203,14 @@ When running locally, documentation is available at:
 ## Deployment
 
 - **Frontend:** Vercel
-- **Backend:** Railway
+- **Backend:** Self-hosted Docker deployment through GitHub Actions
+- **Domain registrar:** one.com
 - **Production domain:** https://eduardobernalabogado.es
+
+## Public information pages
+
+- Legal notice: `/aviso-legal`
+- Cookie policy: `/politica-de-cookies`
 
 ## Author
 
@@ -402,8 +408,14 @@ En local, la documentación queda disponible en:
 ## Despliegue
 
 - **Frontend:** Vercel
-- **Backend:** Railway
+- **Backend:** Despliegue Docker autoalojado mediante GitHub Actions
+- **Registrador del dominio:** one.com
 - **Dominio de producción:** https://eduardobernalabogado.es
+
+## Páginas públicas informativas
+
+- Aviso legal: `/aviso-legal`
+- Política de cookies: `/politica-de-cookies`
 
 ## Autor
 
